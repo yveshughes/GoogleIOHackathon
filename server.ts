@@ -117,7 +117,7 @@ function runSimulatedGenerateOptions(email: any) {
       };
     }
   }
-  return fallback;
+  return { ...fallback, isSimulated: true, isQuotaExceeded: isApiRateLimited };
 }
 
 // Helper function to simulate learning dynamic rules from speech comments
@@ -190,8 +190,44 @@ function runSimulatedLearnFromVoice(email: any, voiceFeedback: string) {
     },
     voiceReply,
     audioBase64: null,
-    proposedActions
+    proposedActions: {
+      ...proposedActions,
+      isSimulated: true,
+      isQuotaExceeded: isApiRateLimited
+    }
   };
+}
+
+// Rate limit / Cooloff state to prevent slow repeated 429 requests
+let isApiRateLimited = false;
+let rateLimitUntil = 0;
+
+function checkRateLimit(): boolean {
+  if (isApiRateLimited && Date.now() < rateLimitUntil) {
+    return true; // Use fallback immediately
+  }
+  return false;
+}
+
+function handleApiError(error: any) {
+  let isQuotaOrLimit = false;
+  try {
+    const errorStr = JSON.stringify(error).toLowerCase();
+    if (errorStr.includes("429") || errorStr.includes("quota") || errorStr.includes("limit") || errorStr.includes("exhausted") || errorStr.includes("resource_exhausted")) {
+      isQuotaOrLimit = true;
+    }
+  } catch (e) {}
+
+  const errMsg = (error?.message || "").toLowerCase();
+  if (errMsg.includes("429") || errMsg.includes("quota") || errMsg.includes("limit") || errMsg.includes("exhausted") || error?.status === "RESOURCE_EXHAUSTED" || error?.code === 429 || error?.status === 429) {
+    isQuotaOrLimit = true;
+  }
+
+  if (isQuotaOrLimit) {
+    isApiRateLimited = true;
+    rateLimitUntil = Date.now() + 30 * 60 * 1000; // 30 minutes of clean, interruption-free local simulation mode
+    console.info("INFO: Google Gemini 3.5-Flash Quota/Rate Limit (429) activated. Dynamic local high-fidelity simulation session engaged for 30 minutes.");
+  }
 }
 
 // REST route to generate smart options based on user custom policies
@@ -204,6 +240,11 @@ app.post("/api/gemini/generate-options", async (req, res) => {
   const { sender, senderEmail, subject, body, previousFailedAction } = email;
 
   try {
+    // Check if API is in rate-limit cooloff
+    if (checkRateLimit()) {
+      return res.json(runSimulatedGenerateOptions(email));
+    }
+
     // Check if API key is mock or missing
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "MOCK_KEY") {
@@ -268,7 +309,12 @@ Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sand
     return res.json(dataParsed);
 
   } catch (error: any) {
-    console.warn("WARNING: Gemini API call failed or rate-limited. Falling back gracefully to simulated sandbox results.", error.message);
+    handleApiError(error);
+    if (isApiRateLimited && (Date.now() < rateLimitUntil)) {
+      console.info("INFO: Google Gemini 3.5-Flash Limit was reached. Invoking high-fidelity simulated backup options.");
+    } else {
+      console.warn("WARNING: Gemini API call failed. Falling back gracefully to simulated results.", error.message || error);
+    }
     // Graceful error fallback
     return res.json(runSimulatedGenerateOptions(email));
   }
@@ -285,6 +331,11 @@ app.post("/api/gemini/learn-from-voice", async (req, res) => {
   const { sender, senderEmail, subject, body } = email;
 
   try {
+    // Check if API is in rate-limit cooloff
+    if (checkRateLimit()) {
+      return res.json(runSimulatedLearnFromVoice(email, voiceFeedback));
+    }
+
     // Check if API key is mock or missing
     const apiKey = process.env.GEMINI_API_KEY;
     const isMockKey = !apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "MOCK_KEY";
@@ -384,10 +435,421 @@ Do not include any Markdown wrap. Output strictly RAW JSON.`;
     });
 
   } catch (error: any) {
-    console.warn("WARNING: Gemini voice aligner rate-limited or failed. Falling back gracefully to simulated voice aligner outputs.", error.message);
+    handleApiError(error);
+    if (isApiRateLimited && (Date.now() < rateLimitUntil)) {
+      console.info("INFO: Google Gemini 3.5-Flash Limit was reached. Invoking voice-critic alignment simulation.");
+    } else {
+      console.warn("WARNING: Gemini voice aligner failed. Falling back gracefully to simulation.", error.message || error);
+    }
     return res.json(runSimulatedLearnFromVoice(email, voiceFeedback));
   }
 });
+
+// Implementation of high-fidelity Google Gmail Sandbox Clone Generator
+function generateSimulatedSandboxEmails(): any[] {
+  const subjects = [
+    "Daughter's concert schedule changed!",
+    "Quick sync regarding Q3 roadmap delay",
+    "CRITICAL: Subscription credit card expired - suspension in 24 hrs",
+    "Your prescription is ready for pickup",
+    "Last chance: 40% off annual professional seat renewal today only",
+    "Urgent: Flight AA-492 schedule adjustment - confirm seat assignment",
+    "Announcing Figma global library v4.3.0 changes",
+    "Mandatory Security verification response needed",
+    "Your verified attendee QR barcode inside!",
+    "weekly DevOps Status Report: Deployment pipeline logs",
+    "Important: Please review updated privacy terms of service",
+    "Netflix: New login from unknown device detected",
+    "OpenAI API: Billing monthly usage invoice generated",
+    "GitHub: You have 12 unread notifications in 3 repositories",
+    "Figma: Comments on 'AgentGym UI Mockups' board",
+    "Starbucks Rewards: Try our new Spring Iced Mocha!",
+    "Slack: 4 new mentions in general and engineering channels",
+    "Zoom: Recording is now available for 'PR Alignment Sync'",
+    "Uber: Your trip bill on Friday afternoon",
+    "Lyft: Your ride receipt is ready",
+    "Substack: 'The Daily Reinforcer' - issue #94",
+    "Medium: Top recommendations for you based on your reading list",
+    "LinkedIn: 3 recruiters viewed your profile in San Francisco",
+    "Duolingo: Don't lose your 42-day French streak!",
+    "Steam Store: Items from your wishlist are currently on sale",
+    "Stripe Enterprise: Payment processed successfully",
+    "Local Realty Group: New property match in your neighborhood",
+    "Weekly Tech Digest: How RLHF is changing developer workloads",
+    "Gym Membership: Your monthly subscription payment processed",
+    "Family Group Chat: Nina posted 3 photos in 'Summer 2026'",
+  ];
+
+  const senders = [
+    { name: "Nina Patel", email: "nina@family.com" },
+    { name: "Jordan Lee", email: "jordan.lee@techcorp.com" },
+    { name: "Cloud Billing Subscriptions", email: "billing@cloudscale-console.com" },
+    { name: "Walmart Retail Alerts", email: "orders@walmart.com" },
+    { name: "Acme Analytics Team", email: "growth@acmeanalytics.io" },
+    { name: "Travel Desk Support", email: "notifications@aerogate-travel.com" },
+    { name: "Design System Team", email: "ui-design@globalcorp.com" },
+    { name: "Security Training Unit", email: "sec-ops.phishing@globalcorp.com" },
+    { name: "Space Hackathon Admin", email: "admin@space-hackathon2026.org" },
+    { name: "DevOps Automated Pager", email: "deployments@globalcorp.com" },
+  ];
+
+  const categories: ('primary' | 'social' | 'promotions' | 'updates')[] = ["primary", "social", "promotions", "updates"];
+  
+  const tagsList = [
+    ["Family", "Urgent"],
+    ["Work", "Engineering"],
+    ["Console", "Alert"],
+    ["Health", "Logistics"],
+    ["SaaS", "Sales"],
+    ["Travel", "Logistics"],
+    ["Design", "Shared"],
+    ["Security", "Attention"],
+    ["Hackathon", "Verify"],
+    ["Automated", "Deploy"],
+  ];
+
+  let list: any[] = [];
+  
+  for (let i = 1; i <= 100; i++) {
+    const senderObj = senders[i % senders.length];
+    const subject = `${subjects[i % subjects.length]} #${1000 + i}`;
+    const category = categories[i % categories.length];
+    
+    let complexity: 'low' | 'high' = 'low';
+    if (category === 'primary' || i % 4 === 0) {
+      complexity = 'high';
+    }
+
+    const tags = tagsList[i % tagsList.length];
+    
+    // Set random offset hours to make dates realistic
+    const date = i === 1 ? "10:15 AM" : i === 2 ? "9:43 AM" : i === 3 ? "8:12 AM" : i <= 6 ? "Yesterday" : `May ${Math.max(1, 23 - Math.floor(i / 4))}`;
+
+    list.push({
+      id: `gmail_sandbox_${i}`,
+      sender: senderObj.name,
+      senderEmail: senderObj.email,
+      subject: subject,
+      body: `This is a secure offline clone of message #${i} imported into the AgentGym sandbox. Dynamic alignment scoring is active on this stream. The underlying RL policies are tracking visual cues and speech alignments with Yves.`,
+      date: date,
+      category: category,
+      status: i <= 15 ? 'unread' : 'read',
+      starred: i % 8 === 0,
+      tags: [...tags, "Gym Clone"],
+      previousFailedAction: i % 3 === 0 ? "Automator auto-replied with cold calendar schedule booking links." : "None",
+      complexity: complexity,
+      points: complexity === 'high' ? 50 : 10,
+      subagents: complexity === 'high' ? {
+        contextGatherer: `Fetched thread history with ${senderObj.name}. Evaluated potential meeting schedule overlaps.`,
+        toolUser: `Queried mock calendars and workspace databases for ${senderObj.name}.`,
+        draftingAgent: `Generated Direct Humanized response options matching the user's customized alignment guidance rules.`
+      } : undefined
+    });
+  }
+  return list;
+}
+
+// Parse a single Gmail message payload into the AgentGym sandbox Email shape
+function parseGmailMessage(msg: any): any {
+  const headers = msg.payload?.headers || [];
+  const getHeader = (name: string) => headers.find((h: any) => h.name.toLowerCase() === name.toLowerCase())?.value || "";
+
+  const subject = getHeader("subject") || "No Subject";
+  const fromHeader = getHeader("from") || "Unknown Sender";
+  
+  // Extract clean sender name and email
+  let sender = fromHeader;
+  let senderEmail = "unknown@gmail.com";
+  const bracketMatch = fromHeader.match(/(.*)<(.*)>/);
+  if (bracketMatch) {
+    sender = bracketMatch[1].trim().replace(/^["']|["']$/g, '');
+    senderEmail = bracketMatch[2].trim();
+  } else if (fromHeader.includes("@")) {
+    sender = fromHeader.split("@")[0].trim().replace(/^["']|["']$/g, '');
+    senderEmail = fromHeader;
+  }
+  if (!sender) sender = senderEmail;
+
+  // Extract body
+  let body = msg.snippet || "";
+  
+  // Recursively search for text/plain body
+  function findTextBody(payload: any): string {
+    if (!payload) return "";
+    if (payload.mimeType === "text/plain" && payload.body?.data) {
+      try {
+        return Buffer.from(payload.body.data, "base64").toString("utf-8");
+      } catch (e) {}
+    }
+    if (payload.parts) {
+      for (const part of payload.parts) {
+        const result = findTextBody(part);
+        if (result) return result;
+      }
+    }
+    return "";
+  }
+  
+  const textBody = findTextBody(msg.payload);
+  if (textBody) {
+    body = textBody;
+  }
+
+  // Assign categories based on Gmail labels
+  const labelIds = msg.labelIds || [];
+  let category: "primary" | "social" | "promotions" | "updates" = "primary";
+  if (labelIds.includes("CATEGORY_SOCIAL")) category = "social";
+  if (labelIds.includes("CATEGORY_PROMOTIONS")) category = "promotions";
+  if (labelIds.includes("CATEGORY_UPDATES")) category = "updates";
+
+  // Determine user-friendly formatted date
+  const dateHeader = getHeader("date");
+  let formattedDate = "Today";
+  try {
+    if (dateHeader) {
+      const parsedDate = new Date(dateHeader);
+      const isToday = new Date().toDateString() === parsedDate.toDateString();
+      if (isToday) {
+        formattedDate = parsedDate.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      } else {
+        formattedDate = parsedDate.toLocaleDateString([], { month: "short", day: "numeric" });
+      }
+    }
+  } catch (err) {}
+
+  const lowerBody = body.toLowerCase();
+  const lowerSubject = subject.toLowerCase();
+  
+  // Mark complexity based on core sandbox triggers
+  const complexity = (lowerBody.includes("error") || lowerBody.includes("failed") || lowerBody.includes("incident") || lowerBody.includes("urgent") || lowerSubject.includes("schedule") || lowerSubject.includes("meeting") || lowerBody.includes("help") || lowerBody.includes("sync") || lowerBody.includes("align")) ? "high" : "low";
+
+  const tags: string[] = ["Gmail Sandbox"];
+  if (lowerSubject.includes("invoice") || lowerBody.includes("payment") || lowerBody.includes("charge")) tags.push("Billing");
+  if (lowerSubject.includes("meeting") || lowerBody.includes("zoom") || lowerBody.includes("huddle") || lowerBody.includes("calendar")) tags.push("Schedule");
+  if (lowerSubject.includes("newsletter") || lowerBody.includes("unsubscribe")) tags.push("Newsletter");
+  if (labelIds.includes("STARRED")) tags.push("Starred");
+
+  return {
+    id: msg.id,
+    sender,
+    senderEmail,
+    subject,
+    body: body.substring(0, 1000),
+    date: formattedDate,
+    category,
+    status: labelIds.includes("UNREAD") ? "unread" : "read",
+    starred: labelIds.includes("STARRED"),
+    tags,
+    previousFailedAction: "None",
+    complexity,
+    points: complexity === "high" ? 40 : 10,
+    subagents: complexity === "high" ? {
+      contextGatherer: "Analyzed your sandbox history for similar email content.",
+      toolUser: "Checked local schedule databases for related entries.",
+      draftingAgent: "Adopted natural, direct alignment choices matching your Core Rules."
+    } : undefined
+  };
+}
+
+// 1. GET /api/auth/google/url - Create Google OAuth authorization URL
+app.get("/api/auth/google/url", (req, res) => {
+  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID || "";
+  const host = req.get("host");
+  // Ensure we use dynamic secure protocol for the preview environment
+  const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+  const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.email",
+    access_type: "offline",
+    prompt: "consent"
+  });
+
+  const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  res.json({ url: authUrl, configured: !!clientId });
+});
+
+// 2. GET /api/auth/google/callback - Handle OAuth Callback & Token Exchange
+app.get(["/api/auth/google/callback", "/api/auth/google/callback/"], async (req, res) => {
+  const { code, error } = req.query;
+
+  if (error) {
+    console.error("OAuth callback query error:", error);
+    return res.send(`
+      <html>
+        <body style="font-family: sans-serif; text-align: center; padding: 40px; background-color: #f8fafc; color: #334155;">
+          <h2>Gmail Sandbox Connection Failed</h2>
+          <p style="color: #ef4444;">${error}</p>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({ type: "GMAIL_AUTH_FAILURE", error: "${error}" }, "*");
+              setTimeout(() => window.close(), 3000);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+  }
+
+  if (!code) {
+    return res.status(400).send("Authorization code missing.");
+  }
+
+  try {
+    const clientId = process.env.GOOGLE_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID || "";
+    const clientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET || "";
+    const host = req.get("host");
+    const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
+    const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+
+    console.log("Exchanging authorize code with Google for tokens...");
+    const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({
+        code: code as string,
+        client_id: clientId,
+        client_secret: clientSecret,
+        redirect_uri: redirectUri,
+        grant_type: "authorization_code",
+      }),
+    });
+
+    if (!tokenResponse.ok) {
+      const errorText = await tokenResponse.text();
+      throw new Error(`Google token exchange error: ${errorText}`);
+    }
+
+    const tokenData = await tokenResponse.json();
+    const accessToken = tokenData.access_token;
+
+    // Use token to retrieve user email
+    console.log("Retrieving user profile info...");
+    const profileResponse = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    
+    let userEmail = "yveskhalila@gmail.com";
+    if (profileResponse.ok) {
+      const profileData = await profileResponse.json();
+      if (profileData.email) {
+        userEmail = profileData.email;
+      }
+    }
+
+    // Return simple responsive HTML that communicates back via postMessage then self-closes
+    res.send(`
+      <html>
+        <body style="font-family: sans-serif; text-align: center; padding: 40px; background-color: #f8fafc; color: #334155; display: flex; flex-col; justify-content: center; align-items: center; height: 80vh;">
+          <div>
+            <h2 style="color: #2563eb; margin-bottom: 8px;">Workspace Mirror Successful!</h2>
+            <p style="font-size: 14px; margin-bottom: 24px;">Synchronizing sandboxed mailbox for <strong>${userEmail}</strong>...</p>
+            <div style="width: 40px; height: 40px; border: 4px solid #e2e8f0; border-top-color: #2563eb; border-radius: 50%; animate: spin 1s linear infinite; margin: 0 auto; animation: spin 1s linear infinite;"></div>
+          </div>
+          <style>
+            @keyframes spin { to { transform: rotate(360deg); } }
+          </style>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({ 
+                type: "GMAIL_AUTH_SUCCESS", 
+                token: "${accessToken}", 
+                email: "${userEmail}" 
+              }, "*");
+              setTimeout(() => window.close(), 1000);
+            } else {
+              window.location.href = "/";
+            }
+          </script>
+        </body>
+      </html>
+    `);
+  } catch (err: any) {
+    console.error("OAuth callback error during exchange:", err);
+    res.send(`
+      <html>
+        <body style="font-family: sans-serif; text-align: center; padding: 40px; background-color: #f8fafc; color: #334155;">
+          <h2 style="color: #ef4444;">Exchange Error</h2>
+          <p>${err.message || err}</p>
+          <script>
+            if (window.opener) {
+              window.opener.postMessage({ type: "GMAIL_AUTH_FAILURE", error: "${err.message || err}" }, "*");
+              setTimeout(() => window.close(), 5000);
+            }
+          </script>
+        </body>
+      </html>
+    `);
+  }
+});
+
+// 3. POST /api/gmail/import - Retrieve 100 emails securely in a sandbox-safe sandbox mode
+app.post("/api/gmail/import", async (req, res) => {
+  const { token } = req.body;
+
+  // Resilient fallback generator if using simulated sandbox action
+  if (!token || token === "MOCK_SANDBOX_TOKEN") {
+    console.log("No token provided or mock request. Generating 100 sandbox emails...");
+    const mockEmails = generateSimulatedSandboxEmails();
+    return res.json({ emails: mockEmails });
+  }
+
+  try {
+    console.log("Fetching messages from the live Gmail API...");
+    const listRes = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=100", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!listRes.ok) {
+      const errText = await listRes.text();
+      console.error("Gmail list request failed:", errText);
+      throw new Error(`Gmail API failure: ${errText}`);
+    }
+
+    const listData = await listRes.json();
+    const stubs = listData.messages || [];
+
+    if (stubs.length === 0) {
+      return res.json({ emails: [] });
+    }
+
+    console.log(`Discovered ${stubs.length} messages. Fetching bulk details in chunks...`);
+    const details: any[] = [];
+    const chunkSize = 15;
+
+    for (let i = 0; i < stubs.length && i < 100; i += chunkSize) {
+      const chunk = stubs.slice(i, i + chunkSize);
+      const chunkPromises = chunk.map(async (stub: any) => {
+        try {
+          const detailRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${stub.id}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (detailRes.ok) {
+            return await detailRes.json();
+          }
+        } catch (e) {
+          console.error(`Error requesting message detail ${stub.id}:`, e);
+        }
+        return null;
+      });
+      const results = await Promise.all(chunkPromises);
+      details.push(...results.filter(Boolean));
+    }
+
+    console.log(`Import complete. Parsing details for ${details.length} emails into AgentGym formats...`);
+    const parsed = details.map(msg => parseGmailMessage(msg));
+    return res.json({ emails: parsed });
+
+  } catch (err: any) {
+    console.warn("Gmail import failed. Rolling back seamlessly to beautiful simulated 100 sandbox emails", err.message || err);
+    const mockEmails = generateSimulatedSandboxEmails();
+    return res.json({ emails: mockEmails, isSimulatedFallback: true });
+  }
+});
+
 
 // Setup Vite dev server middleware in dev mode, handle production serving
 async function bootstrapServer() {

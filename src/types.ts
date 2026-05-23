@@ -10,6 +10,13 @@ export interface Email {
   starred?: boolean;
   tags: string[];
   previousFailedAction: string;
+  complexity?: 'low' | 'high';
+  points?: number;
+  subagents?: {
+    contextGatherer?: string;
+    toolUser?: string;
+    draftingAgent?: string;
+  };
 }
 
 export interface ProposedOption {
@@ -23,6 +30,8 @@ export interface ProposedActions {
   option1: ProposedOption;
   option2: ProposedOption;
   justification: string;
+  isSimulated?: boolean;
+  isQuotaExceeded?: boolean;
 }
 
 export interface TrainingLog {

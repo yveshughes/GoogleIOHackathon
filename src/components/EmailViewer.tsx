@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Archive, Trash, MailOpen, AlertCircle, Activity, Sparkles, ArrowLeftRight } from 'lucide-react';
+import { Archive, Trash, MailOpen, AlertCircle, Activity, Sparkles, ArrowLeftRight, Wrench, Search, Layers, UserCheck } from 'lucide-react';
 import { Email, ProposedActions, PolicyRule } from '../types';
 
 interface EmailViewerProps {
@@ -146,13 +146,22 @@ export default function EmailViewer({
             <p className="text-[10px] text-slate-400 mt-0.5">Gemini is formulating safe option proposals based on active custom policy constraints</p>
           </div>
         ) : proposedActions ? (
-          <div className="space-y-4">
+          <div className="space-y-4 animate-fade-in">
+            {proposedActions.isSimulated && (
+              <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3 flex items-start gap-2 text-amber-900 shadow-2xs select-none">
+                <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div className="text-[10px] sm:text-xs">
+                  <span className="font-extrabold text-amber-950">Local Sandbox Aligner Engagement:</span> We've dynamically engaged local sandboxed representations. Move your head or click directly to play inside this sandbox.
+                </div>
+              </div>
+            )}
+
             {/* Options cards row */}
             <div className="grid grid-cols-2 gap-6">
-              {/* Option 1 Option Card (Lean Left) */}
+              {/* Option 1 Option Card */}
               <div
                 onClick={() => onResolveDischarge('option1')}
-                className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[220px] group shadow-xs hover:shadow-md ${
+                className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer select-none flex flex-col justify-start min-h-[165px] group shadow-xs hover:shadow-md ${
                   activeHoldDirection === 'left'
                     ? 'border-blue-600 ring-4 ring-blue-500/25 bg-blue-50/20 transform scale-[1.02]'
                     : proposedActions.recommendation === 'option1'
@@ -169,11 +178,11 @@ export default function EmailViewer({
                 <div>
                   <div className="flex justify-between items-center mb-2.5">
                     <span className="text-xs uppercase font-extrabold text-slate-400 tracking-widest block">
-                      Option 1 · LEAN LEFT (Key A)
+                      Option 1
                     </span>
                     {activeHoldDirection === 'left' && (
                       <span className="text-xs font-black text-blue-600 animate-pulse bg-blue-100 px-2 py-0.5 rounded">
-                        HOLD {3 - secondsHeld}s...
+                        HOLDING {3 - secondsHeld}s...
                       </span>
                     )}
                   </div>
@@ -188,23 +197,12 @@ export default function EmailViewer({
                     </div>
                   )}
                 </div>
-
-                {/* Confirm banner */}
-                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-                    <span className="font-bold uppercase tracking-wider text-[10px] text-slate-500">Trigger: Tilt Head Left</span>
-                  </div>
-                  <button className="bg-blue-50 hover:bg-blue-600 text-blue-700 hover:text-white px-3.5 py-1 rounded-lg font-extrabold text-xs transition-all duration-150 transform active:scale-95 shadow-3xs">
-                    Select Left
-                  </button>
-                </div>
               </div>
 
-              {/* Option 2 Option Card (Lean Right) */}
+              {/* Option 2 Option Card */}
               <div
                 onClick={() => onResolveDischarge('option2')}
-                className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer select-none flex flex-col justify-between min-h-[220px] group shadow-xs hover:shadow-md ${
+                className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer select-none flex flex-col justify-start min-h-[165px] group shadow-xs hover:shadow-md ${
                   activeHoldDirection === 'right'
                     ? 'border-indigo-600 ring-4 ring-indigo-500/25 bg-slow-50/20 transform scale-[1.02]'
                     : proposedActions.recommendation === 'option2'
@@ -221,11 +219,11 @@ export default function EmailViewer({
                 <div>
                   <div className="flex justify-between items-center mb-2.5">
                     <span className="text-xs uppercase font-extrabold text-slate-400 tracking-widest block">
-                      Option 2 · LEAN RIGHT (Key D)
+                      Option 2
                     </span>
                     {activeHoldDirection === 'right' && (
                       <span className="text-xs font-black text-indigo-600 animate-pulse bg-indigo-100 px-2 py-0.5 rounded">
-                        HOLD {3 - secondsHeld}s...
+                        HOLDING {3 - secondsHeld}s...
                       </span>
                     )}
                   </div>
@@ -239,17 +237,6 @@ export default function EmailViewer({
                       &ldquo;{proposedActions.option2.draft}&rdquo;
                     </div>
                   )}
-                </div>
-
-                {/* Confirm banner */}
-                <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                  <div className="flex items-center gap-1.5">
-                    <span className="h-2 w-2 rounded-full bg-indigo-500 animate-pulse" />
-                    <span className="font-bold uppercase tracking-wider text-[10px] text-slate-500">Trigger: Tilt Head Right</span>
-                  </div>
-                  <button className="bg-indigo-50 hover:bg-indigo-600 text-indigo-700 hover:text-white px-3.5 py-1 rounded-lg font-extrabold text-xs transition-all duration-150 transform active:scale-95 shadow-3xs">
-                    Select Right
-                  </button>
                 </div>
               </div>
             </div>

@@ -27,9 +27,9 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
   const slides = [
     {
       id: 'welcome',
-      title: 'AgentGym',
-      tagline: 'Inbox Alignment via Reinforcement Feedback',
-      subtitle: 'Aligning autonomous mail sub-agents inside a safe simulation sandbox.',
+      title: 'AgentGym: Aligning Autonomous Sub-Agents',
+      tagline: 'Built For The Agentic Era on Gemini 3.5 Flash',
+      subtitle: 'Tackle rogue autopilots inside a safe, cloned mailbox sandbox before giving them live write access.',
       icon: <Sparkles className="h-10 w-10 text-blue-400 animate-pulse" />,
       content: (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
@@ -39,22 +39,22 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
               <div className="flex items-start gap-3">
                 <div className="h-5 w-5 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-400 font-extrabold text-[11px] shrink-0 mt-0.5">1</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Middleware Playground</h4>
-                  <p className="text-[11.5px] text-slate-400">Safely sandboxes your autonomous sub-agents before live deployment.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Sustained Frontier-Level Intelligence</h4>
+                  <p className="text-[11.5px] text-slate-400">Leverages Gemini 3.5 Flash for rapid, multi-step sub-agent planning and long-horizon tasks at scale.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="h-5 w-5 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-400 font-extrabold text-[11px] shrink-0 mt-0.5">2</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Tame Rogue AI Autopilots</h4>
-                  <p className="text-[11.5px] text-slate-400">Overcomes rogue calendar replies and overlooked payment failures.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">The Trust Score Protocol</h4>
+                  <p className="text-[11.5px] text-slate-400">Measure. Audit. Earn alignment points as the agent learns your boundary rules and personal policies.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="h-5 w-5 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-400 font-extrabold text-[11px] shrink-0 mt-0.5">3</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Micro-Calibration Controls</h4>
-                  <p className="text-[11.5px] text-slate-400">Zero-friction head movements, gesture swipes, or live speech teaching.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Zero-Risk Secure Cloning</h4>
+                  <p className="text-[11.5px] text-slate-400">Connects to your real mailbox, copies the first batch, and simulates everything safely during calibration.</p>
                 </div>
               </div>
             </div>
@@ -63,28 +63,28 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
           {/* Core Interactive Sandbox schematic */}
           <div className="md:col-span-6 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col items-center justify-center h-52 relative overflow-hidden">
             <div className="absolute top-2 left-2 text-[8px] font-mono text-blue-400 bg-blue-950/40 px-2 py-0.5 rounded border border-blue-900/40 uppercase tracking-widest">
-              Live Alignment Matrix
+              Live Onboarding Status
             </div>
 
             {/* Pulsing visual grid with orbiting nodes */}
-            <div className="relative w-28 h-28 flex items-center justify-center">
+            <div className="relative w-24 h-24 flex items-center justify-center">
               <div className="absolute inset-0 border border-dashed border-blue-500/20 rounded-full animate-spin-slow"></div>
-              <div className="absolute w-20 h-20 border border-dashed border-sky-500/30 rounded-full animate-pulse"></div>
+              <div className="absolute w-16 h-16 border border-dashed border-sky-500/30 rounded-full animate-pulse"></div>
               
               {/* Central Core Agent Node */}
-              <div className="relative z-10 w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <Cpu className="h-5 w-5 text-white animate-pulse" />
+              <div className="relative z-10 w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <Cpu className="h-4.5 w-4.5 text-white animate-pulse" />
               </div>
 
-              {/* Orbiting particles mapping input weights */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-1 w-2.5 h-2.5 bg-emerald-400 rounded-full shadow shadow-emerald-400/50 animate-bounce"></div>
-              <div className="absolute bottom-1 right-2 w-2 h-2 bg-blue-400 rounded-full animate-ping"></div>
-              <div className="absolute left-1 top-1/2 -translate-y-1/2 w-3 h-3 bg-indigo-400 rounded-full animate-pulse"></div>
+              {/* Orbiting particles */}
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-emerald-400 rounded-full shadow shadow-emerald-400/50 animate-bounce"></div>
+              <div className="absolute bottom-1 right-2 w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping"></div>
+              <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-indigo-400 rounded-full animate-pulse"></div>
             </div>
 
-            <span className="text-[10px] text-slate-400 font-medium tracking-tight mt-3 text-center">
-              Reinforcement Tuning Loops 
-              <span className="text-emerald-400 font-bold ml-1">● 98.4% Aligned</span>
+            <span className="text-[10px] text-slate-350 font-mono tracking-tight mt-3 text-center">
+              Target Command State: 
+              <span className="text-emerald-400 font-bold ml-1">● BUILDING SANDBOX...</span>
             </span>
           </div>
         </div>
@@ -92,9 +92,9 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
     },
     {
       id: 'problem',
-      title: 'The Problem',
-      tagline: 'Rogue Mail Agents & Deficient Automation',
-      subtitle: 'Classic LLM shortcuts lead to severe personal and operational friction.',
+      title: 'The AI Trust Gap',
+      tagline: 'Personal & Professional Friction',
+      subtitle: '"Nobody trusts their AI Agents to disposition or respond to emails on their behalf."',
       icon: <AlertTriangle className="h-10 w-10 text-rose-400 animate-bounce-slow" />,
       content: (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
@@ -104,22 +104,15 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
               <div className="flex items-start gap-3">
                 <div className="h-5 w-5 rounded-full bg-rose-500/15 flex items-center justify-center text-rose-400 font-extrabold text-[11px] shrink-0 mt-0.5">&times;</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Cold Family Autoreplies</h4>
-                  <p className="text-[11.5px] text-slate-400">AI auto-schedules calendar links to partners rather than warm custom text.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">The Cold Corporate Incident</h4>
+                  <p className="text-[11.5px] text-slate-400">"My wife Nina sent me an email about our daughter's band concert, and my AI agent responded to her asking her to book time on my corporate calendar!"</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="h-5 w-5 rounded-full bg-rose-500/15 flex items-center justify-center text-rose-400 font-extrabold text-[11px] shrink-0 mt-0.5">&times;</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Database Outage Archiving</h4>
-                  <p className="text-[11.5px] text-slate-400">Classifies critical database alerts as routine newsletter updates.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-rose-500/15 flex items-center justify-center text-rose-400 font-extrabold text-[11px] shrink-0 mt-0.5">&times;</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Blind Solicitation Snare</h4>
-                  <p className="text-[11.5px] text-slate-400">Spams recruiters with calendar slots instead of dynamic unsubscribes.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Severe Action Leakage</h4>
+                  <p className="text-[11.5px] text-slate-400">Traditional loops immediately write updates or archive payment declines blindly, leading to total operational blocks.</p>
                 </div>
               </div>
             </div>
@@ -128,33 +121,33 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
           {/* Problem Warning Monitor Widget */}
           <div className="md:col-span-6 bg-slate-900/60 p-4 rounded-2xl border border-rose-950/40 flex flex-col items-center justify-center h-52 relative overflow-hidden">
             <div className="absolute top-2 left-2 text-[8px] font-mono text-rose-400 bg-rose-950/40 px-2 py-0.5 rounded border border-rose-900/40 uppercase tracking-widest animate-pulse">
-              System Disturbance Alerts
+              Sandbox Incident Simulation
             </div>
 
             <div className="w-full space-y-2.5 px-3">
               <div className="bg-rose-950/30 border border-rose-900/35 p-2 rounded-xl flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
-                  <span className="text-[10px] font-mono text-rose-300 font-bold uppercase">Severe Action Leakage</span>
+                  <span className="text-[10px] font-mono text-rose-300 font-bold uppercase">Unaligned Autoreply Leak</span>
                 </div>
-                <span className="text-[9px] font-mono text-slate-500">Failed auto-draft</span>
+                <span className="text-[9px] font-mono text-slate-500">Unapproved Draft</span>
               </div>
 
               <div className="relative p-2.5 rounded-xl bg-slate-950 border border-slate-850 space-y-1">
                 <div className="flex justify-between text-[9px] font-mono">
-                  <span className="text-slate-500">From: brenda@vancestates.com</span>
-                  <span className="text-rose-400">Rogue Action</span>
+                  <span className="text-slate-550 text-slate-400">From: Nina (Wife)</span>
+                  <span className="text-rose-450 font-bold">Rogue Reply</span>
                 </div>
-                <div className="h-1.5 w-full bg-rose-520/20 bg-rose-950/50 rounded overflow-hidden">
+                <div className="h-1.5 w-full bg-rose-950/50 rounded overflow-hidden">
                   <div className="bg-rose-500 h-full w-4/5 animate-pulse" />
                 </div>
-                <span className="text-[8.5px] font-sans text-slate-400 block truncate">"Drafted: Confirm tour with realtor on Saturday at 2 PM..."</span>
+                <span className="text-[8.5px] font-sans text-stone-400 block truncate">"Drafted: Hi Nina, please book an onboarding session on my Calendly slot..."</span>
               </div>
             </div>
 
             <span className="text-[10px] text-rose-400 mt-3 font-semibold flex items-center gap-1">
               <ShieldAlert className="h-3.5 w-3.5 animate-bounce" />
-              Agent misfires occurring on unaligned models
+              Unmanaged AI destroys trust. We need an Inbox Gym.
             </span>
           </div>
         </div>
@@ -162,9 +155,9 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
     },
     {
       id: 'solution',
-      title: 'The Interaction',
-      tagline: 'Multi-Modal Gym Controls',
-      subtitle: 'Zero-friction validation designed for human-in-the-loop loops.',
+      title: 'Active Alignment Sandbox',
+      tagline: 'Rewarding the Agent, Reinforcement In Action',
+      subtitle: 'AgentGym replicates your inbox. Teach it how you would reply to earn trust points.',
       icon: <Video className="h-10 w-10 text-emerald-400 animate-pulse" />,
       content: (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
@@ -172,24 +165,24 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
           <div className="md:col-span-6 space-y-4">
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-extrabold text-[11px] shrink-0 mt-0.5">L</div>
+                <div className="h-5 w-5 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Tilt Head Left (Approve)</h4>
-                  <p className="text-[11.5px] text-slate-400">Confirm positive active checks (Unsubscribe/Action) instantly.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Continuous Real-Time Approvals</h4>
+                  <p className="text-[11.5px] text-slate-400">Compare draft variants inside the gorgeous Gmail clone. Click or gesture approval instantly.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-extrabold text-[11px] shrink-0 mt-0.5">R</div>
+                <div className="h-5 w-5 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Tilt Head Right (Decline/Snooze)</h4>
-                  <p className="text-[11.5px] text-slate-400">Reject incorrect sub-agent drafts and snooze notifications.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Continuous Trust Score</h4>
+                  <p className="text-[11.5px] text-slate-400">Correct answers yield +12 feedback points. Mistakes deduct -8 points. Tracks true reliability dynamically.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-extrabold text-[11px] shrink-0 mt-0.5">🎙️</div>
+                <div className="h-5 w-5 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Continuous Voice Feedback</h4>
-                  <p className="text-[11.5px] text-slate-400">Speak instructions clearly to filter future bulk spams.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Google Rambler & Gesture Sensors</h4>
+                  <p className="text-[11.5px] text-slate-400">Use Rambler to navigate continuously through crawls in real-time, aligned seamlessly with head vectors.</p>
                 </div>
               </div>
             </div>
@@ -198,7 +191,7 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
           {/* Interactive Webcam Target schematic */}
           <div className="md:col-span-6 bg-slate-900/60 p-4 rounded-2xl border border-emerald-950/40 flex flex-col items-center justify-center h-52 relative overflow-hidden">
             <div className="absolute top-2 left-2 text-[8px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/40 uppercase tracking-widest">
-              Physical Alignment Calibration
+              Live Reinforcement Signals
             </div>
 
             {/* Simulated camera grid screen */}
@@ -208,28 +201,28 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
               {/* Scanline */}
               <div className="absolute w-full h-0.5 bg-emerald-500/30 top-1/2 -translate-y-1/2 animate-pulse" />
 
-              <span className="text-[7px] font-mono text-emerald-500 self-start select-none">WEBCAM_TRACKER // ACTIVE</span>
+              <span className="text-[7px] font-mono text-emerald-500 self-start select-none">RAMBLER ENGINE // DISPATCHER</span>
 
               {/* Dynamic head-tilt graphic */}
               <div className="relative py-1 flex flex-col items-center animate-bounce-slow">
                 <div className="h-9 w-9 border-2 border-emerald-500/40 border-dashed rounded-full flex items-center justify-center">
-                  <div className="h-5 w-5 bg-gradient-to-br from-emerald-500 to-teal-400 rounded-full animate-pulse" />
+                  <div className="h-5 w-5 bg-gradient-to-br from-blue-500 to-indigo-400 rounded-full animate-pulse" />
                 </div>
                 {/* Horizontal scale indicators */}
                 <div className="w-16 h-1 bg-slate-800 rounded-full mt-2 relative overflow-hidden">
-                  <div className="bg-yellow-400 h-full w-2 absolute left-1/3 animate-ping" />
+                  <div className="bg-emerald-400 h-full w-3 absolute left-1/4 animate-bounce" />
                 </div>
               </div>
 
               <div className="w-full flex justify-between text-[6.5px] font-mono text-slate-500">
-                <span>[A] APPROVE</span>
-                <span className="text-emerald-400">CENTERED</span>
-                <span>SNOOZE [D]</span>
+                <span>APPROVE</span>
+                <span className="text-emerald-400">ACTIVE RUN</span>
+                <span>CORRECT</span>
               </div>
             </div>
 
             <span className="text-[10px] text-slate-400 font-semibold mt-3 text-center">
-              Real-time facial vector mapping validation
+              Realtime visual sandbox rewards ledger
             </span>
           </div>
         </div>
@@ -237,9 +230,9 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
     },
     {
       id: 'features',
-      title: 'Under the Hood',
-      tagline: 'Continuous Autopilot & Exporter',
-      subtitle: 'A fully synchronized full-stack suite powered by modern Gemini APIs.',
+      title: 'Production Platform Exporter',
+      tagline: 'Bridging Design-Time Alignments and Agentic Frameworks',
+      subtitle: 'Once alignment goals are reached, export the compiled config package seamlessly.',
       icon: <Cpu className="h-10 w-10 text-purple-400" />,
       content: (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
@@ -247,24 +240,24 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
           <div className="md:col-span-6 space-y-4">
             <div className="space-y-3">
               <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 font-extrabold text-[11px] shrink-0 mt-0.5">●</div>
+                <div className="h-5 w-5 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Crawler Autopilot Dials</h4>
-                  <p className="text-[11.5px] text-slate-400">Simulate incoming workflows at customized crawlers speeds.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">OpenClaw Engine Integration</h4>
+                  <p className="text-[11.5px] text-slate-400">Inject trained criteria files directly into OpenClaw pipelines to safeguard communications.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 font-extrabold text-[11px] shrink-0 mt-0.5">●</div>
+                <div className="h-5 w-5 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Continuous Voice Learning</h4>
-                  <p className="text-[11.5px] text-slate-400">Gemini models translate voice comments directly into schema overrides.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Hermes Agent Configurations</h4>
+                  <p className="text-[11.5px] text-slate-400">Transfer alignment rules to Hermes sub-agents to preserve custom family and business rules.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 font-extrabold text-[11px] shrink-0 mt-0.5">●</div>
+                <div className="h-5 w-5 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Production Manifest Exporter</h4>
-                  <p className="text-[11.5px] text-slate-400">Export learned weights once Trust Score surpasses threshold.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">The Gemini Spark Engine</h4>
+                  <p className="text-[11.5px] text-slate-400">Deploy verified sandbox variables inside Gemini Spark triggers autonomously as high-confidence responses.</p>
                 </div>
               </div>
             </div>
@@ -273,26 +266,26 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
           {/* Code Exporter schematic animation */}
           <div className="md:col-span-6 bg-slate-900/60 p-4 rounded-2xl border border-purple-950/40 flex flex-col items-center justify-center h-52 relative overflow-hidden">
             <div className="absolute top-2 left-2 text-[8px] font-mono text-purple-400 bg-purple-950/40 px-2 py-0.5 rounded border border-purple-900/40 uppercase tracking-widest">
-              Manifest Exporter CLI
+              Direct Engine Package Exporter
             </div>
 
             {/* Mock Scrolling Terminal and stats */}
             <div className="w-full bg-slate-950 px-3 py-2 border border-slate-850 rounded-xl space-y-1.5 text-left font-mono text-[9px]">
-              <div className="flex items-center justify-between border-b border-slate-900 pb-1 text-slate-500">
-                <span>Output Log Terminal</span>
-                <span className="text-purple-400">Active</span>
+              <div className="flex items-center justify-between border-b border-slate-905 border-slate-800 pb-1 text-slate-500">
+                <span>Alignment CLI Output</span>
+                <span className="text-purple-400">Trained Manifest</span>
               </div>
-              <p className="text-slate-450 text-slate-400 font-medium leading-normal">
-                <span className="text-slate-500 font-mono">$</span> npx agentgym validate --export <br />
-                <span className="text-emerald-400 animate-pulse">// Compiling dynamic policies...</span> <br />
-                <span className="text-purple-400">&gt; Exported 11 aligned inbox filters.</span> <br />
-                <span className="text-emerald-400 font-bold">&gt;&gt; trust_score: +45 // STATUS: VALID</span>
+              <p className="text-slate-400 font-medium leading-normal">
+                <span className="text-slate-500 font-mono">$</span> export --target=gemini-spark <br />
+                <span className="text-emerald-400 animate-pulse">// Compiling rules: Nina=Warm, Billing=Billing_Elevated</span> <br />
+                <span className="text-purple-400">&gt; Exported rules bundle (spark_config_v1.json).</span> <br />
+                <span className="text-emerald-400 font-bold">&gt;&gt; verified_score: 98% Match // STATUS: LOCKED</span>
               </p>
             </div>
 
             <div className="w-full mt-2 bg-slate-950/50 p-1.5 rounded-lg border border-slate-800/80 flex justify-between items-center text-[8.5px] font-mono">
-              <span className="text-slate-400">Manifest:</span>
-              <span className="text-white font-semibold">gym_manifest_v1.json</span>
+              <span className="text-slate-400">Output Frame:</span>
+              <span className="text-white font-semibold">spark_config_v1.json</span>
             </div>
           </div>
         </div>
@@ -300,9 +293,9 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
     },
     {
       id: 'demo',
-      title: 'Ready to Train?',
-      tagline: 'Step Inside the Sandbox Room',
-      subtitle: 'Try calibration trackers, add emails, and deploy safe sub-agents now.',
+      title: 'Ready to Meet the Sandbox?',
+      tagline: 'Explore the Gmail Clone Interface',
+      subtitle: 'See how Gemini 3.5 Flash solves the AI alignment trust gap here in real-time.',
       icon: <Target className="h-10 w-10 text-yellow-400 animate-bounce-slow" />,
       content: (
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
@@ -312,22 +305,22 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
               <div className="flex items-start gap-3">
                 <div className="h-5 w-5 rounded-full bg-yellow-500/15 flex items-center justify-center text-yellow-500 font-extrabold text-[12px] shrink-0 mt-0.5">✓</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Gain AI Trust Points</h4>
-                  <p className="text-[11.5px] text-slate-400">Audit sub-agent mistakes dynamically as real reinforcement signals.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Audit Simulated Actions</h4>
+                  <p className="text-[11.5px] text-slate-400">Click actions immediately inside test flows without write threats to your live inbox.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="h-5 w-5 rounded-full bg-yellow-500/15 flex items-center justify-center text-yellow-500 font-extrabold text-[12px] shrink-0 mt-0.5">✓</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Learn Voice Filter Policies</h4>
-                  <p className="text-[11.5px] text-slate-400">Say what you want and listen to Gemini confirm your preferences.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Trigger Google Rambler Autopilot</h4>
+                  <p className="text-[11.5px] text-slate-400">Activate autopilot simulation steps to crawl and draft on the fly.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
                 <div className="h-5 w-5 rounded-full bg-yellow-500/15 flex items-center justify-center text-yellow-500 font-extrabold text-[12px] shrink-0 mt-0.5">✓</div>
                 <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Deploy Aligned Sub-Agents</h4>
-                  <p className="text-[11.5px] text-slate-400">Secure automated mail handlers operating with custom constraints.</p>
+                  <h4 className="text-sm font-bold text-white tracking-tight">Calibrate Physical Controls</h4>
+                  <p className="text-[11.5px] text-slate-400">Face tracking matches micro-tilts safely, providing hands-free oversight options.</p>
                 </div>
               </div>
             </div>
@@ -336,21 +329,21 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
           {/* Sandbox Room CTA Launchpad Panel */}
           <div className="md:col-span-6 bg-slate-900/60 p-5 rounded-2xl border border-yellow-950/40 flex flex-col items-center justify-center h-52 relative overflow-hidden text-center space-y-3">
             <div className="absolute top-2 left-2 text-[8px] font-mono text-yellow-400 bg-yellow-950/40 px-2 py-0.5 rounded border border-yellow-900/40 uppercase tracking-widest">
-              Ready for Sandbox Deploy
+              Launch Agent Sandbox
             </div>
 
             <div className="relative">
               <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur-sm opacity-55 animate-pulse" />
               <button
                 onClick={onStartTraining}
-                className="relative inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold text-xs uppercase tracking-widest px-5 py-3 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0"
+                className="relative inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold text-xs uppercase tracking-widest px-5 py-3 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
               >
-                <CheckCircle className="h-4 w-4" /> Start Active Gym Training
+                <CheckCircle className="h-4 w-4" /> Go to Sandboxed Gmail (Yves)
               </button>
             </div>
 
             <p className="text-[10px] text-slate-400 leading-normal max-w-xs">
-              Supports continuous calibration, simulated email crawls, and Gemini TTS feedback loops!
+              Simulates high-fidelity crawls, custom rules, and trust metric visualization with absolute sandbox safety!
             </p>
           </div>
         </div>

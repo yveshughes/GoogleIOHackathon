@@ -64,7 +64,7 @@ export default function EmailList({
 
           <div className="mb-6 relative">
             <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-slate-400 font-medium">Formulating Sandbox Sandbox...</span>
+              <span className="text-xs text-slate-400 font-medium">Building Sandbox...</span>
               <span className="text-xs font-bold text-blue-400 font-mono">{sandboxProgress.toFixed(0)}%</span>
             </div>
             
@@ -228,15 +228,26 @@ export default function EmailList({
                     {email.tags.map(tag => (
                       <span 
                         key={tag} 
-                        className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold bg-slate-100 text-slate-600 tracking-tight"
+                        className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold bg-slate-150 text-slate-600 tracking-tight"
                       >
                         {tag}
                       </span>
                     ))}
                     
+                    {/* Triage vs Delegate Pill */}
+                    {email.complexity === 'high' ? (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-md font-extrabold bg-purple-50 text-purple-700 border border-purple-200/55 flex items-center gap-0.5">
+                        ⚡ Delegated Sandbox (+{email.points || 50} pts)
+                      </span>
+                    ) : (
+                      <span className="text-[9px] px-1.5 py-0.5 rounded-md font-bold bg-sky-50 text-sky-700 border border-sky-200/50 flex items-center gap-0.5">
+                        💨 Main Agent (+{email.points || 10} pts)
+                      </span>
+                    )}
+
                     {/* Failed Warning Badge */}
-                    <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold bg-red-50 text-red-600 border border-red-100 ml-auto">
-                      needs retraining
+                    <span className="text-[9px] px-1.5 py-0.5 rounded-md font-semibold bg-red-50 text-red-650 border border-red-100 ml-auto">
+                      needs training
                     </span>
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Star, HelpCircle, Activity, LayoutGrid, Download, Compass, ShieldCheck, CheckCircle2, ChevronRight, RefreshCw, XCircle, Trash2, Award, FileText, AlertTriangle } from 'lucide-react';
 import Sidebar from './components/Sidebar';
+import GestureFloatingPanel from './components/GestureFloatingPanel';
 import EmailList from './components/EmailList';
 import EmailViewer from './components/EmailViewer';
 import PolicyManager from './components/PolicyManager';
@@ -51,10 +52,142 @@ export default function App() {
   const [showExportModal, setShowExportModal] = useState<boolean>(false);
   const [showComposeModal, setShowComposeModal] = useState<boolean>(false);
 
+  // Gmail secure sandbox authentication & import states
+  const [gmailToken, setGmailToken] = useState<string | null>(null);
+  const [activeGmailEmail, setActiveGmailEmail] = useState<string | null>(null);
+  const [isSyncingGmail, setIsSyncingGmail] = useState<boolean>(false);
+
   // Rambler and gestures states
   const [ramblerEnabled, setRamblerEnabled] = useState<boolean>(false);
   const [gestureMode, setGestureMode] = useState<'center' | 'left' | 'right'>('center');
   const [cameraAvailable, setCameraAvailable] = useState<boolean>(false);
+  const [calories, setCalories] = useState<number>(0);
+  const [lastGesture, setLastGesture] = useState<'center' | 'left' | 'right'>('center');
+
+  // Track head movements to increment calories count
+  useEffect(() => {
+    if (gestureMode !== 'center' && lastGesture === 'center') {
+      setCalories(prev => prev + 1);
+    }
+    setLastGesture(gestureMode);
+  }, [gestureMode, lastGesture]);
+
+  // Listen for Google OAuth successful callback events from popup
+  useEffect(() => {
+    const handleOAuthMessage = async (event: MessageEvent) => {
+      const origin = event.origin;
+      if (!origin.endsWith('.run.app') && !origin.includes('localhost')) {
+        return;
+      }
+
+      if (event.data?.type === 'GMAIL_AUTH_SUCCESS') {
+        const { token, email } = event.data;
+        if (token) {
+          setGmailToken(token);
+          setActiveGmailEmail(email);
+          await handleImportGmailEmails(token);
+        }
+      } else if (event.data?.type === 'GMAIL_AUTH_FAILURE') {
+        console.error("Gmail Connection Error:", event.data.error);
+        alert(`Failed to authenticate secure Gmail link: ${event.data.error || "Connection Interrupted"}`);
+        setIsSyncingGmail(false);
+      }
+    };
+
+    window.addEventListener('message', handleOAuthMessage);
+    return () => window.removeEventListener('message', handleOAuthMessage);
+  }, []);
+
+  const handleImportGmailEmails = async (token: string) => {
+    setIsSyncingGmail(true);
+    try {
+      const response = await fetch('/api/gmail/import', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token })
+      });
+
+      if (!response.ok) {
+        throw new Error("Sandbox Import service returned a failure status");
+      }
+
+      const data = await response.json();
+      const imported: Email[] = data.emails || [];
+
+      if (imported.length > 0) {
+        setEmails(imported);
+        setSelectedEmailId(imported[0].id);
+        
+        // Boost trust rating points for sandbox initialization!
+        setTrustScore(prev => Math.min(150, Math.max(0, prev + 25)));
+        
+        // Push secure syncing log to history
+        const syncLog: TrainingLog = {
+          id: `sys_log_${Date.now()}`,
+          emailId: "sys",
+          emailSubject: "Sandbox Synced Successfully",
+          sender: "Workspace System",
+          actionTaken: "option1",
+          recommendedAction: "option1",
+          userFeedback: "agree",
+          scoreDelta: 25,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setLogs(prev => [syncLog, ...prev]);
+
+        alert(`Successfully imported and cloned ${imported.length} messages into your secure offline sandbox! Bypassing any direct actions in your live Gmail.`);
+      } else {
+        alert("The synchronized Gmail inbox returned no active messages. Sandbox remains set on default seeds.");
+      }
+    } catch (err: any) {
+      console.error("Import error:", err);
+      alert("Encountered connection difficulties. Reverting sandbox to high-fidelity seed clone library.");
+    } finally {
+      setIsSyncingGmail(false);
+    }
+  };
+
+  const handleConnectGmail = async () => {
+    try {
+      setIsSyncingGmail(true);
+      const response = await fetch('/api/auth/google/url');
+      if (!response.ok) {
+        throw new Error('Failed to fetch authorization URL');
+      }
+      const { url, configured } = await response.json();
+      
+      // If client ID is currently unconfigured, fallback instantly to high-fidelity simulated clone
+      if (!configured) {
+        console.warn("Client ID is missing. Falling back instantly to simulated 100 clone sandbox...");
+        await handleImportGmailEmails("MOCK_SANDBOX_TOKEN");
+        return;
+      }
+
+      const authWindow = window.open(
+        url,
+        'gmail_oauth_popup',
+        'width=600,height=700'
+      );
+
+      if (!authWindow) {
+        // Pop-up blocked - fallback gracefully
+        const confirmSimulated = window.confirm(
+          "Your pop-up blocker has actively intercepted the sign-in modal. Would you like to bypass login and import 100 high-fidelity sandbox emails directly?"
+        );
+        if (confirmSimulated) {
+          await handleImportGmailEmails("MOCK_SANDBOX_TOKEN");
+        } else {
+          setIsSyncingGmail(false);
+        }
+      }
+    } catch (error) {
+      console.error('OAuth connection error:', error);
+      // Fallback securely and silently
+      await handleImportGmailEmails("MOCK_SANDBOX_TOKEN");
+    }
+  };
 
   // Simulate Sandbox Build sequence on boot
   useEffect(() => {
@@ -70,6 +203,7 @@ export default function App() {
     }, 150);
     return () => clearInterval(interval);
   }, []);
+
 
   const currentEmail = emails.find(e => e.id === selectedEmailId) || null;
 
@@ -198,18 +332,17 @@ export default function App() {
     // Check if user choice aligns with the ideal recommendation
     const isModelRecommendation = proposedActions.recommendation === actionChosen;
     
-    // Gain/Deduct weights points!
+    // Gain/Deduct weights points based on email complexity points!
     let ptsGain = 0;
-    let feedbackStr = "";
+    const basePoints = currentEmail.points || 10;
     if (isModelRecommendation) {
-      ptsGain = 12; // Aligned with AI recommendation
-      feedbackStr = `Approved Gemini's proposal for "${currentEmail.subject}"`;
+      ptsGain = basePoints; // Aligned with AI recommendation
     } else {
-      ptsGain = -8; // Deviated / corrected previous action
-      feedbackStr = `Manually overrode Gemini's proposal for "${currentEmail.subject}"`;
+      ptsGain = -Math.round(basePoints * 0.4); // Deviated / corrected previous action (-40%)
     }
 
     setTrustScore(prev => Math.max(-100, Math.min(150, prev + ptsGain)));
+    setCalories(prev => prev + 5); // Burn 5 calories for email dispatch activity!
 
     // Create a training log item
     const newLogItem: TrainingLog = {
@@ -289,6 +422,7 @@ export default function App() {
 
     // 3. Grant reinforcement learning Trust Score reward!
     setTrustScore(prev => Math.min(150, prev + 15));
+    setCalories(prev => prev + 10); // Voice instructions effort!
 
     // 4. Record dynamic vocal teaching operation in Ledger
     const newLogItem: TrainingLog = {
@@ -311,6 +445,7 @@ export default function App() {
     setEmails(SEED_EMAILS);
     setSelectedEmailId(SEED_EMAILS[0].id);
     setRamblerEnabled(false);
+    setCalories(0);
   };
 
   // Filter emails based on left list category / menus
@@ -330,11 +465,21 @@ export default function App() {
         setActiveMenu={setActiveMenu}
         trustScore={trustScore}
         onReset={handleReset}
+        userEmail={userEmail}
+        selectedEmail={currentEmail}
+        gmailToken={gmailToken}
+        activeGmailEmail={activeGmailEmail}
+        isSyncingGmail={isSyncingGmail}
+        onConnectGmail={handleConnectGmail}
+      />
+
+      {/* Floating Picture-In-Picture Webcam / Gesture tracking HUD */}
+      <GestureFloatingPanel
         gestureMode={gestureMode}
         setGestureMode={setGestureMode}
         cameraAvailable={cameraAvailable}
         setCameraAvailable={setCameraAvailable}
-        userEmail={userEmail}
+        calories={calories}
       />
 
       {/* 2. Main Sandbox Workspace columns */}

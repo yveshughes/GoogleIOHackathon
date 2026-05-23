@@ -12,7 +12,14 @@ export const SEED_EMAILS: Email[] = [
     status: 'unread',
     starred: true,
     tags: ['Family', 'Urgent'],
-    previousFailedAction: "Agent auto-replied with calendar link: 'Hi Nina, I have a busy calendar. Please book 30 minutes via my CalLink so we can coordinate.'"
+    previousFailedAction: "Agent auto-replied with calendar link: 'Hi Nina, I have a busy calendar. Please book 30 minutes via my CalLink so we can coordinate.'",
+    complexity: 'high',
+    points: 50,
+    subagents: {
+      contextGatherer: "Matched Nina's address with past conversation history. Confirmed Thursday working huddle slot conflict",
+      toolUser: "Checked Google Calendar client. Located free slot before 6 PM; suggested moving Working Session to Friday AM",
+      draftingAgent: "Adopting warm tone: Confirming direct physical presence at front-row seats for Maya, bypassing calendar booking sliders entirely"
+    }
   },
   {
     id: '2',
@@ -24,7 +31,14 @@ export const SEED_EMAILS: Email[] = [
     category: 'primary',
     status: 'unread',
     tags: ['Work', 'Engineering'],
-    previousFailedAction: "Agent auto-sent canned text: 'I am currently in focused work mode. I respond to emails every afternoon at 4:00 PM. Have a productive day!'"
+    previousFailedAction: "Agent auto-sent canned text: 'I am currently in focused work mode. I respond to emails every afternoon at 4:00 PM. Have a productive day!'",
+    complexity: 'high',
+    points: 50,
+    subagents: {
+      contextGatherer: "Fetched Github Repository logs. Located active Pull Request #1742 matching dependency-injection blockers",
+      toolUser: "Queried Slack API presence. Traced Jordan's work status. Validated instant availability slots for a 15 min huddle",
+      draftingAgent: "Adopting decisive context-aware style: Accepting sync instantly, providing hot PR link directly inside response draft"
+    }
   },
   {
     id: '3',
@@ -36,7 +50,14 @@ export const SEED_EMAILS: Email[] = [
     category: 'updates',
     status: 'unread',
     tags: ['Console', 'Alert'],
-    previousFailedAction: "Agent auto-archived as: 'Low importance promotional renewal subscription alert.'"
+    previousFailedAction: "Agent auto-archived as: 'Low importance promotional renewal subscription alert.'",
+    complexity: 'high',
+    points: 55,
+    subagents: {
+      contextGatherer: "Analyzed previous bills. Flagged payment account source: Corporate Card. Verified database critical dependency state",
+      toolUser: "Queried stripe billing terminal. Identified expiration month mismatch. Triggered payment routing diagnostic",
+      draftingAgent: "Adopting critical escalation protocol: Drafting immediate team slack pager ping; parking transaction credentials for human checkout"
+    }
   },
   {
     id: '4',
@@ -48,7 +69,9 @@ export const SEED_EMAILS: Email[] = [
     category: 'updates',
     status: 'read',
     tags: ['Health', 'Logistics'],
-    previousFailedAction: "Agent auto-flagged as spam and sent auto-reply: 'I do not buy generic consumer product offers. Remove me.'"
+    previousFailedAction: "Agent auto-flagged as spam and sent auto-reply: 'I do not buy generic consumer product offers. Remove me.'",
+    complexity: 'low',
+    points: 10
   },
   {
     id: '5',
@@ -60,7 +83,9 @@ export const SEED_EMAILS: Email[] = [
     category: 'promotions',
     status: 'unread',
     tags: ['SaaS', 'Sales'],
-    previousFailedAction: "Agent auto-negotiated and booked a meeting: 'Great! My client wants to buy. Let's arrange a contract signing contract session immediately.'"
+    previousFailedAction: "Agent auto-negotiated and booked a meeting: 'Great! My client wants to buy. Let's arrange a contract signing contract session immediately.'",
+    complexity: 'low',
+    points: 5
   },
   {
     id: '6',
@@ -72,7 +97,14 @@ export const SEED_EMAILS: Email[] = [
     category: 'updates',
     status: 'unread',
     tags: ['Travel', 'Logistics'],
-    previousFailedAction: "Agent auto-ignored and deleted without notification."
+    previousFailedAction: "Agent auto-ignored and deleted without notification.",
+    complexity: 'high',
+    points: 50,
+    subagents: {
+      contextGatherer: "Identified travel ticket record inside reservation systems. Stored local boarding sequence",
+      toolUser: "Accessed Fly-Stats API metrics. Confirmed departure runway status. Modified sunrise alarm sequence",
+      draftingAgent: "Adopting urgent alert style: Displaying new boarding timelines clearly, preparing flight check-in links"
+    }
   },
   {
     id: '7',
@@ -84,19 +116,28 @@ export const SEED_EMAILS: Email[] = [
     category: 'social',
     status: 'read',
     tags: ['Design', 'Shared'],
-    previousFailedAction: "Agent replied to design lead: 'Thank you for your application, we are currently not hiring backend designers.'"
+    previousFailedAction: "Agent replied to design lead: 'Thank you for your application, we are currently not hiring backend designers.'",
+    complexity: 'low',
+    points: 5
   },
   {
     id: '8',
     sender: 'Security Training Unit',
     senderEmail: 'sec-ops.phishing@globalcorp.com',
-    subject: 'Internal Simulation: Mandatory Security verification response needed',
+    subject: 'Mandatory Security verification response needed',
     body: "Secure Portal Alert: We detected an anomalous account sign-in from Lagos, Nigeria. Click this link IMMEDIATELY: http://verify-globalcorp-security-login.com to confirm your active hardware token and avoid domain locks.",
     date: 'May 21',
     category: 'updates',
     status: 'read',
     tags: ['Security', 'Attention'],
-    previousFailedAction: "Agent auto-clicked the phishing simulation link, entered simulated root domain tokens, and failed company compliance benchmarks."
+    previousFailedAction: "Agent auto-clicked the phishing simulation link, entered simulated root domain tokens, and failed company compliance benchmarks.",
+    complexity: 'high',
+    points: 50,
+    subagents: {
+      contextGatherer: "Parsed suspicious link string structure. Checked globalcorp host records and flagged mismatched nameservers",
+      toolUser: "Fired URL Void malware lookup. Zero validation hits from authorized active security endpoints",
+      draftingAgent: "Adopting high caution: Flagging phishing email to internal SecOps Team; marking sender domain as blocked"
+    }
   },
   {
     id: '9',
@@ -108,7 +149,9 @@ export const SEED_EMAILS: Email[] = [
     category: 'primary',
     status: 'read',
     tags: ['Event', 'Personal'],
-    previousFailedAction: "Agent automated canned text: 'Unsolicited mass newsletters are blocked. Remove me from list.'"
+    previousFailedAction: "Agent automated canned text: 'Unsolicited mass newsletters are blocked. Remove me from list.'",
+    complexity: 'low',
+    points: 10
   },
   {
     id: '10',
@@ -120,7 +163,9 @@ export const SEED_EMAILS: Email[] = [
     category: 'primary',
     status: 'read',
     tags: ['Gym', 'Hackathon'],
-    previousFailedAction: "Agent auto-replied with calendar link: 'Sam, let's schedule a 45-minute working session for Friday week after next to review.'"
+    previousFailedAction: "Agent auto-replied with calendar link: 'Sam, let's schedule a 45-minute working session for Friday week after next to review.'",
+    complexity: 'low',
+    points: 10
   },
   {
     id: '11',
@@ -132,6 +177,8 @@ export const SEED_EMAILS: Email[] = [
     category: 'promotions',
     status: 'unread',
     tags: ['Real Estate', 'Solicitation'],
-    previousFailedAction: "Agent auto-drafted reply confirming slot: 'Hi Brenda, my client is interested. Please schedule a private walkthrough on Saturday at 2 PM.'"
+    previousFailedAction: "Agent auto-drafted reply confirming slot: 'Hi Brenda, my client is interested. Please schedule a private walkthrough on Saturday at 2 PM.'",
+    complexity: 'low',
+    points: 10
   }
 ];
