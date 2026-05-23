@@ -1,0 +1,6 @@
+{
+  "name": "AgentGym Mail",
+  "description": "Reinforcement learning sandbox for Gmail AI agents. Train, score, and output trusted behavior configs using face gesture tracking/webcam and Gemini 3.5 Flash.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
