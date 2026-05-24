@@ -15,6 +15,7 @@ interface SidebarProps {
   activeGmailEmail: string | null;
   isSyncingGmail: boolean;
   onConnectGmail: () => void;
+  isGeneratingOptions?: boolean;
 }
 
 export default function Sidebar({
@@ -28,11 +29,94 @@ export default function Sidebar({
   gmailToken,
   activeGmailEmail,
   isSyncingGmail,
-  onConnectGmail
+  onConnectGmail,
+  isGeneratingOptions = false
 }: SidebarProps) {
   const [prevTrustScore, setPrevTrustScore] = useState<number>(trustScore);
   const [showBriefPoints, setShowBriefPoints] = useState<boolean>(false);
   const [deltaScore, setDeltaScore] = useState<number | null>(null);
+
+  const [loadingStep, setLoadingStep] = useState<number>(0);
+
+  useEffect(() => {
+    if (isGeneratingOptions) {
+      setLoadingStep(1);
+      const t1 = setTimeout(() => setLoadingStep(2), 800);
+      const t2 = setTimeout(() => setLoadingStep(3), 1600);
+      return () => {
+        clearTimeout(t1);
+        clearTimeout(t2);
+      };
+    } else {
+      setLoadingStep(0);
+    }
+  }, [isGeneratingOptions]);
+
+  const renderAgentStatus = (step: number) => {
+    if (isGeneratingOptions) {
+      if (loadingStep === step) {
+        return (
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] text-blue-500 font-bold font-mono animate-pulse">Running</span>
+            <RefreshCw className="h-3 w-3 text-blue-500 animate-spin shrink-0" />
+          </div>
+        );
+      } else if (loadingStep > step) {
+        return (
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] text-emerald-600 font-bold font-mono">Done</span>
+            <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono shrink-0">✓</div>
+          </div>
+        );
+      } else {
+        return (
+          <div className="flex items-center gap-1">
+            <span className="text-[9px] text-slate-400 font-mono">Queued</span>
+            <div className="h-1.5 w-1.5 rounded-full bg-slate-350 shrink-0 mr-1" />
+          </div>
+        );
+      }
+    } else if (selectedEmail) {
+      return (
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] text-emerald-600 font-bold font-mono">Aligned</span>
+          <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono shrink-0">✓</div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] text-slate-400 font-mono">Waiting</span>
+          <div className="h-1.5 w-1.5 rounded-full bg-slate-300 shrink-0 mr-1" />
+        </div>
+      );
+    }
+  };
+
+  const renderEngineStatus = () => {
+    if (isGeneratingOptions) {
+      return (
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] text-amber-500 font-bold font-mono animate-pulse">Synthesizing</span>
+          <RefreshCw className="h-3 w-3 text-amber-500 animate-spin shrink-0" />
+        </div>
+      );
+    } else if (selectedEmail) {
+      return (
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] text-emerald-600 font-bold font-mono">Active</span>
+          <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono shrink-0">✓</div>
+        </div>
+      );
+    } else {
+      return (
+        <div className="flex items-center gap-1">
+          <span className="text-[9px] text-slate-400 font-mono">Standby</span>
+          <div className="h-1.5 w-1.5 rounded-full bg-slate-350 shrink-0 mr-1" />
+        </div>
+      );
+    }
+  };
 
   useEffect(() => {
     if (trustScore !== prevTrustScore) {
@@ -296,15 +380,15 @@ export default function Sidebar({
                     <div className="pl-4.5 space-y-1.5">
                       <div className="flex items-center justify-between text-[10px] text-slate-600">
                         <span>Context Gatherer</span>
-                        <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono flex-shrink-0">✓</div>
+                        {renderAgentStatus(1)}
                       </div>
                       <div className="flex items-center justify-between text-[10px] text-slate-600">
                         <span>Tool User Agent</span>
-                        <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono flex-shrink-0">✓</div>
+                        {renderAgentStatus(2)}
                       </div>
                       <div className="flex items-center justify-between text-[10px] text-slate-600">
                         <span>Drafting Agent</span>
-                        <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono flex-shrink-0">✓</div>
+                        {renderAgentStatus(3)}
                       </div>
                     </div>
                   </div>
@@ -315,7 +399,7 @@ export default function Sidebar({
                       <Wrench className="h-3 w-3 text-slate-400" />
                       <span>Sandboxed Engine Ready</span>
                     </div>
-                    <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono flex-shrink-0">✓</div>
+                    {renderEngineStatus()}
                   </div>
                 </>
               ) : (
@@ -329,22 +413,22 @@ export default function Sidebar({
                     <div className="pl-4.5 space-y-1.5">
                       <div className="flex items-center justify-between text-[10px] text-slate-600">
                         <span>Main Agent direct dispatch</span>
-                        <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono flex-shrink-0">✓</div>
+                        {renderAgentStatus(1)}
                       </div>
                       <div className="flex items-center justify-between text-[10px] text-slate-600">
                         <span>Draft option formulation</span>
-                        <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono flex-shrink-0">✓</div>
+                        {renderAgentStatus(2)}
                       </div>
                     </div>
                   </div>
 
                   {/* Sandbox Idle Group */}
-                  <div className="flex items-center justify-between text-slate-500 font-bold text-[11px] pt-1.5 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-slate-600 font-bold text-[11px] pt-1.5 border-t border-slate-100">
                     <div className="flex items-center gap-1.5">
                       <Wrench className="h-3 w-3 text-slate-400" />
-                      <span>Sub-agents in reserve</span>
+                      <span>Sandbox Engine Status</span>
                     </div>
-                    <span className="text-[8px] font-mono uppercase bg-slate-50 px-1 py-0.5 rounded text-slate-500 border border-slate-200">Idle</span>
+                    {renderEngineStatus()}
                   </div>
                 </>
               )
@@ -366,10 +450,10 @@ export default function Sidebar({
 
                 <div className="flex items-center justify-between text-slate-500 font-bold text-[11px] pt-1.5 border-t border-slate-100">
                   <div className="flex items-center gap-1.5">
-                    <Wrench className="h-3 w-3 text-slate-300" />
-                    <span>Sandbox engines active</span>
+                    <Wrench className="h-3 w-3 text-slate-350" />
+                    <span>Sandbox Engine Status</span>
                   </div>
-                  <div className="h-3.5 w-3.5 rounded-full border border-emerald-300 bg-emerald-50 text-emerald-600 flex items-center justify-center text-[8px] font-extrabold font-mono flex-shrink-0">✓</div>
+                  {renderEngineStatus()}
                 </div>
               </>
             )}

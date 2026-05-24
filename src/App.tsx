@@ -499,6 +499,7 @@ export default function App() {
         activeGmailEmail={activeGmailEmail}
         isSyncingGmail={isSyncingGmail}
         onConnectGmail={handleConnectGmail}
+        isGeneratingOptions={isGeneratingOptions}
       />
 
       {/* Floating Picture-In-Picture Webcam / Gesture tracking HUD */}
