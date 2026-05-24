@@ -3,351 +3,161 @@ import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, 
   ArrowRight, 
-  AlertTriangle, 
-  ShieldAlert, 
   Sparkles, 
+  Download, 
+  Activity, 
+  Target, 
   Video, 
   Cpu, 
-  Activity, 
-  CheckCircle, 
-  Download, 
-  Target, 
-  Flame, 
   Zap, 
-  Wand2 
+  ShieldAlert, 
+  CheckCircle 
 } from 'lucide-react';
 
 interface PitchDeckProps {
   onStartTraining: () => void;
 }
 
+interface BulletItem {
+  label?: string;
+  text: string;
+  subBullets?: string[];
+}
+
+interface Slide {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: React.ReactNode;
+  color: string;
+  bullets: BulletItem[];
+}
+
 export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
 
-  const slides = [
+  const slides: Slide[] = [
     {
       id: 'welcome',
-      title: 'AgentGym: Aligning Autonomous Sub-Agents',
-      tagline: 'Built For The Agentic Era on Gemini 3.5 Flash',
-      subtitle: 'Tackle rogue autopilots inside a safe, cloned mailbox sandbox before giving them live write access.',
-      icon: <Sparkles className="h-10 w-10 text-blue-400 animate-pulse" />,
-      content: (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
-          {/* Bullet points panel */}
-          <div className="md:col-span-6 space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-400 font-extrabold text-[11px] shrink-0 mt-0.5">1</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Sustained Frontier-Level Intelligence</h4>
-                  <p className="text-[11.5px] text-slate-400">Leverages Gemini 3.5 Flash for rapid, multi-step sub-agent planning and long-horizon tasks at scale.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-400 font-extrabold text-[11px] shrink-0 mt-0.5">2</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">The Trust Score Protocol</h4>
-                  <p className="text-[11.5px] text-slate-400">Measure. Audit. Earn alignment points as the agent learns your boundary rules and personal policies.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-blue-500/15 flex items-center justify-center text-blue-400 font-extrabold text-[11px] shrink-0 mt-0.5">3</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Zero-Risk Secure Cloning</h4>
-                  <p className="text-[11.5px] text-slate-400">Connects to your real mailbox, copies the first batch, and simulates everything safely during calibration.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Core Interactive Sandbox schematic */}
-          <div className="md:col-span-6 bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex flex-col items-center justify-center h-52 relative overflow-hidden">
-            <div className="absolute top-2 left-2 text-[8px] font-mono text-blue-400 bg-blue-950/40 px-2 py-0.5 rounded border border-blue-900/40 uppercase tracking-widest">
-              Live Onboarding Status
-            </div>
-
-            {/* Pulsing visual grid with orbiting nodes */}
-            <div className="relative w-24 h-24 flex items-center justify-center">
-              <div className="absolute inset-0 border border-dashed border-blue-500/20 rounded-full animate-spin-slow"></div>
-              <div className="absolute w-16 h-16 border border-dashed border-sky-500/30 rounded-full animate-pulse"></div>
-              
-              {/* Central Core Agent Node */}
-              <div className="relative z-10 w-9 h-9 bg-gradient-to-tr from-blue-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <Cpu className="h-4.5 w-4.5 text-white animate-pulse" />
-              </div>
-
-              {/* Orbiting particles */}
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-1 w-2 h-2 bg-emerald-400 rounded-full shadow shadow-emerald-400/50 animate-bounce"></div>
-              <div className="absolute bottom-1 right-2 w-1.5 h-1.5 bg-blue-400 rounded-full animate-ping"></div>
-              <div className="absolute left-1 top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-indigo-400 rounded-full animate-pulse"></div>
-            </div>
-
-            <span className="text-[10px] text-slate-350 font-mono tracking-tight mt-3 text-center">
-              Target Command State: 
-              <span className="text-emerald-400 font-bold ml-1">● BUILDING SANDBOX...</span>
-            </span>
-          </div>
-        </div>
-      )
+      title: 'The Inbox Gym',
+      subtitle: 'Training Trustworthy Agents via Physical Feedback',
+      icon: <Sparkles className="h-10 w-10 text-blue-400" />,
+      color: 'from-blue-400 via-indigo-200 to-sky-400',
+      bullets: [
+        { label: 'The Problem', text: 'We don’t trust agents to speak for us.' },
+        { label: 'The Solution', text: 'A Reinforcement Learning (RL) environment to "train" your agent.' },
+        { label: 'Powered by', text: 'Gemini 3.5 Flash + Managed Agents.' }
+      ]
     },
     {
-      id: 'problem',
-      title: 'The AI Trust Gap',
-      tagline: 'Personal & Professional Friction',
-      subtitle: '"Nobody trusts their AI Agents to disposition or respond to emails on their behalf."',
-      icon: <AlertTriangle className="h-10 w-10 text-rose-400 animate-bounce-slow" />,
-      content: (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
-          {/* Bullet points panel */}
-          <div className="md:col-span-6 space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-rose-500/15 flex items-center justify-center text-rose-400 font-extrabold text-[11px] shrink-0 mt-0.5">&times;</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">The Cold Corporate Incident</h4>
-                  <p className="text-[11.5px] text-slate-400">"My wife Nina sent me an email about our daughter's band concert, and my AI agent responded to her asking her to book time on my corporate calendar!"</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-rose-500/15 flex items-center justify-center text-rose-400 font-extrabold text-[11px] shrink-0 mt-0.5">&times;</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Severe Action Leakage</h4>
-                  <p className="text-[11.5px] text-slate-400">Traditional loops immediately write updates or archive payment declines blindly, leading to total operational blocks.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Problem Warning Monitor Widget */}
-          <div className="md:col-span-6 bg-slate-900/60 p-4 rounded-2xl border border-rose-950/40 flex flex-col items-center justify-center h-52 relative overflow-hidden">
-            <div className="absolute top-2 left-2 text-[8px] font-mono text-rose-400 bg-rose-950/40 px-2 py-0.5 rounded border border-rose-900/40 uppercase tracking-widest animate-pulse">
-              Sandbox Incident Simulation
-            </div>
-
-            <div className="w-full space-y-2.5 px-3">
-              <div className="bg-rose-950/30 border border-rose-900/35 p-2 rounded-xl flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-1.5 w-1.5 rounded-full bg-rose-500 animate-ping" />
-                  <span className="text-[10px] font-mono text-rose-300 font-bold uppercase">Unaligned Autoreply Leak</span>
-                </div>
-                <span className="text-[9px] font-mono text-slate-500">Unapproved Draft</span>
-              </div>
-
-              <div className="relative p-2.5 rounded-xl bg-slate-950 border border-slate-850 space-y-1">
-                <div className="flex justify-between text-[9px] font-mono">
-                  <span className="text-slate-550 text-slate-400">From: Nina (Wife)</span>
-                  <span className="text-rose-450 font-bold">Rogue Reply</span>
-                </div>
-                <div className="h-1.5 w-full bg-rose-950/50 rounded overflow-hidden">
-                  <div className="bg-rose-500 h-full w-4/5 animate-pulse" />
-                </div>
-                <span className="text-[8.5px] font-sans text-stone-400 block truncate">"Drafted: Hi Nina, please book an onboarding session on my Calendly slot..."</span>
-              </div>
-            </div>
-
-            <span className="text-[10px] text-rose-400 mt-3 font-semibold flex items-center gap-1">
-              <ShieldAlert className="h-3.5 w-3.5 animate-bounce" />
-              Unmanaged AI destroys trust. We need an Inbox Gym.
-            </span>
-          </div>
-        </div>
-      )
+      id: 'concept',
+      title: 'Clone Your Inbox',
+      subtitle: 'Achieve personal alignment before the agent goes "Live"',
+      icon: <Download className="h-10 w-10 text-indigo-450 text-indigo-400" />,
+      color: 'from-indigo-400 via-purple-200 to-pink-400',
+      bullets: [
+        { text: 'Securely import Gmail history into a private RL sandbox.' },
+        { text: 'Agent generates "Shadow Drafts" based on your past behavior.' },
+        { text: 'The goal: Achieve personal alignment before the agent goes "Live."' }
+      ]
     },
     {
-      id: 'solution',
-      title: 'Active Alignment Sandbox',
-      tagline: 'Rewarding the Agent, Reinforcement In Action',
-      subtitle: 'AgentGym replicates your inbox. Teach it how you would reply to earn trust points.',
-      icon: <Video className="h-10 w-10 text-emerald-400 animate-pulse" />,
-      content: (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
-          {/* Bullet points panel */}
-          <div className="md:col-span-6 space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Continuous Real-Time Approvals</h4>
-                  <p className="text-[11.5px] text-slate-400">Compare draft variants inside the gorgeous Gmail clone. Click or gesture approval instantly.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Continuous Trust Score</h4>
-                  <p className="text-[11.5px] text-slate-400">Correct answers yield +12 feedback points. Mistakes deduct -8 points. Tracks true reliability dynamically.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-emerald-500/15 flex items-center justify-center text-emerald-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Google Rambler & Gesture Sensors</h4>
-                  <p className="text-[11.5px] text-slate-400">Use Rambler to navigate continuously through crawls in real-time, aligned seamlessly with head vectors.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Interactive Webcam Target schematic */}
-          <div className="md:col-span-6 bg-slate-900/60 p-4 rounded-2xl border border-emerald-950/40 flex flex-col items-center justify-center h-52 relative overflow-hidden">
-            <div className="absolute top-2 left-2 text-[8px] font-mono text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/40 uppercase tracking-widest">
-              Live Reinforcement Signals
-            </div>
-
-            {/* Simulated camera grid screen */}
-            <div className="w-40 h-28 border border-white/10 rounded-xl relative overflow-hidden bg-slate-950 flex flex-col items-center justify-between p-2">
-              <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] bg-[size:10px_10px] opacity-10" />
-              
-              {/* Scanline */}
-              <div className="absolute w-full h-0.5 bg-emerald-500/30 top-1/2 -translate-y-1/2 animate-pulse" />
-
-              <span className="text-[7px] font-mono text-emerald-500 self-start select-none">RAMBLER ENGINE // DISPATCHER</span>
-
-              {/* Dynamic head-tilt graphic */}
-              <div className="relative py-1 flex flex-col items-center animate-bounce-slow">
-                <div className="h-9 w-9 border-2 border-emerald-500/40 border-dashed rounded-full flex items-center justify-center">
-                  <div className="h-5 w-5 bg-gradient-to-br from-blue-500 to-indigo-400 rounded-full animate-pulse" />
-                </div>
-                {/* Horizontal scale indicators */}
-                <div className="w-16 h-1 bg-slate-800 rounded-full mt-2 relative overflow-hidden">
-                  <div className="bg-emerald-400 h-full w-3 absolute left-1/4 animate-bounce" />
-                </div>
-              </div>
-
-              <div className="w-full flex justify-between text-[6.5px] font-mono text-slate-500">
-                <span>APPROVE</span>
-                <span className="text-emerald-400">ACTIVE RUN</span>
-                <span>CORRECT</span>
-              </div>
-            </div>
-
-            <span className="text-[10px] text-slate-400 font-semibold mt-3 text-center">
-              Realtime visual sandbox rewards ledger
-            </span>
-          </div>
-        </div>
-      )
+      id: 'how-it-works',
+      title: 'The Training Cycle',
+      subtitle: 'The Reinforcement Learning Loop',
+      icon: <Activity className="h-10 w-10 text-emerald-400" />,
+      color: 'from-emerald-400 via-teal-200 to-cyan-400',
+      bullets: [
+        { label: 'Recommendation', text: 'Agent drafts a reply using Gemini 3.5 Flash.' },
+        { label: 'Feedback', text: 'User accepts, edits, or rejects the draft.' },
+        { label: 'Optimization', text: 'Agent adjusts its weights and "Internal Persona" based on your corrections.' }
+      ]
     },
     {
-      id: 'features',
-      title: 'Production Platform Exporter',
-      tagline: 'Bridging Design-Time Alignments and Agentic Frameworks',
-      subtitle: 'Once alignment goals are reached, export the compiled config package seamlessly.',
-      icon: <Cpu className="h-10 w-10 text-purple-400" />,
-      content: (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
-          {/* Bullet points panel */}
-          <div className="md:col-span-6 space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">OpenClaw Engine Integration</h4>
-                  <p className="text-[11.5px] text-slate-400">Inject trained criteria files directly into OpenClaw pipelines to safeguard communications.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Hermes Agent Configurations</h4>
-                  <p className="text-[11.5px] text-slate-400">Transfer alignment rules to Hermes sub-agents to preserve custom family and business rules.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-purple-500/15 flex items-center justify-center text-purple-400 font-extrabold text-[11px] shrink-0 mt-0.5">✓</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">The Gemini Spark Engine</h4>
-                  <p className="text-[11.5px] text-slate-400">Deploy verified sandbox variables inside Gemini Spark triggers autonomously as high-confidence responses.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Code Exporter schematic animation */}
-          <div className="md:col-span-6 bg-slate-900/60 p-4 rounded-2xl border border-purple-950/40 flex flex-col items-center justify-center h-52 relative overflow-hidden">
-            <div className="absolute top-2 left-2 text-[8px] font-mono text-purple-400 bg-purple-950/40 px-2 py-0.5 rounded border border-purple-900/40 uppercase tracking-widest">
-              Direct Engine Package Exporter
-            </div>
-
-            {/* Mock Scrolling Terminal and stats */}
-            <div className="w-full bg-slate-950 px-3 py-2 border border-slate-850 rounded-xl space-y-1.5 text-left font-mono text-[9px]">
-              <div className="flex items-center justify-between border-b border-slate-905 border-slate-800 pb-1 text-slate-500">
-                <span>Alignment CLI Output</span>
-                <span className="text-purple-400">Trained Manifest</span>
-              </div>
-              <p className="text-slate-400 font-medium leading-normal">
-                <span className="text-slate-500 font-mono">$</span> export --target=gemini-spark <br />
-                <span className="text-emerald-400 animate-pulse">// Compiling rules: Nina=Warm, Billing=Billing_Elevated</span> <br />
-                <span className="text-purple-400">&gt; Exported rules bundle (spark_config_v1.json).</span> <br />
-                <span className="text-emerald-400 font-bold">&gt;&gt; verified_score: 98% Match // STATUS: LOCKED</span>
-              </p>
-            </div>
-
-            <div className="w-full mt-2 bg-slate-950/50 p-1.5 rounded-lg border border-slate-800/80 flex justify-between items-center text-[8.5px] font-mono">
-              <span className="text-slate-400">Output Frame:</span>
-              <span className="text-white font-semibold">spark_config_v1.json</span>
-            </div>
-          </div>
-        </div>
-      )
+      id: 'trustscore',
+      title: 'Gamifying Alignment',
+      subtitle: 'TrustScore & Gamification Metrics',
+      icon: <Target className="h-10 w-10 text-amber-450 text-amber-400" />,
+      color: 'from-amber-400 via-orange-200 to-yellow-400',
+      bullets: [
+        { label: 'The Points System', text: 'Earn points for every successful "match."' },
+        { label: 'Complexity Scaling', text: 'Harder emails (client negotiations) worth more than easy ones (RSVPs).' },
+        { label: 'TrustScore', text: 'A metric determining when the agent is ready for "Auto-Send" mode.' }
+      ]
     },
     {
-      id: 'demo',
-      title: 'Ready to Meet the Sandbox?',
-      tagline: 'Explore the Gmail Clone Interface',
-      subtitle: 'See how Gemini 3.5 Flash solves the AI alignment trust gap here in real-time.',
-      icon: <Target className="h-10 w-10 text-yellow-400 animate-bounce-slow" />,
-      content: (
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center text-left mt-4">
-          {/* Bullet points panel */}
-          <div className="md:col-span-6 space-y-4">
-            <div className="space-y-3">
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-yellow-500/15 flex items-center justify-center text-yellow-500 font-extrabold text-[12px] shrink-0 mt-0.5">✓</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Audit Simulated Actions</h4>
-                  <p className="text-[11.5px] text-slate-400">Click actions immediately inside test flows without write threats to your live inbox.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-yellow-500/15 flex items-center justify-center text-yellow-500 font-extrabold text-[12px] shrink-0 mt-0.5">✓</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Trigger Google Rambler Autopilot</h4>
-                  <p className="text-[11.5px] text-slate-400">Activate autopilot simulation steps to crawl and draft on the fly.</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-3">
-                <div className="h-5 w-5 rounded-full bg-yellow-500/15 flex items-center justify-center text-yellow-500 font-extrabold text-[12px] shrink-0 mt-0.5">✓</div>
-                <div>
-                  <h4 className="text-sm font-bold text-white tracking-tight">Calibrate Physical Controls</h4>
-                  <p className="text-[11.5px] text-slate-400">Face tracking matches micro-tilts safely, providing hands-free oversight options.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Sandbox Room CTA Launchpad Panel */}
-          <div className="md:col-span-6 bg-slate-900/60 p-5 rounded-2xl border border-yellow-950/40 flex flex-col items-center justify-center h-52 relative overflow-hidden text-center space-y-3">
-            <div className="absolute top-2 left-2 text-[8px] font-mono text-yellow-400 bg-yellow-950/40 px-2 py-0.5 rounded border border-yellow-900/40 uppercase tracking-widest">
-              Launch Agent Sandbox
-            </div>
-
-            <div className="relative">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl blur-sm opacity-55 animate-pulse" />
-              <button
-                onClick={onStartTraining}
-                className="relative inline-flex items-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold text-xs uppercase tracking-widest px-5 py-3 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-              >
-                <CheckCircle className="h-4 w-4" /> Go to Sandboxed Gmail (Yves)
-              </button>
-            </div>
-
-            <p className="text-[10px] text-slate-400 leading-normal max-w-xs">
-              Simulates high-fidelity crawls, custom rules, and trust metric visualization with absolute sandbox safety!
-            </p>
-          </div>
-        </div>
-      )
+      id: 'workout-ui',
+      title: 'Training While Triage',
+      subtitle: 'The "Workout" User Interface',
+      icon: <Video className="h-10 w-10 text-rose-400" />,
+      color: 'from-rose-400 via-pink-200 to-red-400',
+      bullets: [
+        { label: 'Webcam Integration', text: 'Uses a lightweight, custom HTML5 Canvas computer vision tracker to detect movements.' },
+        { 
+          label: 'Disposition Gestures', 
+          text: 'Physical head-tilting controls the sandbox decisions:',
+          subBullets: [
+            'Lean Left: Choose Option 1 (Active reply / confirmation).',
+            'Lean Right: Choose Option 2 (Passive snooze / archive).',
+            'Hold to Confirm: Maintain the lean position for 2 seconds to execute.'
+          ]
+        }
+      ]
+    },
+    {
+      id: 'subagents',
+      title: 'The "Chief of Staff" Model',
+      subtitle: 'Simulated Sub-Agent Architecture',
+      icon: <Cpu className="h-10 w-10 text-cyan-400" />,
+      color: 'from-cyan-400 via-sky-200 to-blue-400',
+      bullets: [
+        { label: 'Main Agent', text: 'Triages incoming mail in the sandbox and sets priority.' },
+        { 
+          label: 'Specialized Sub-Agents', 
+          text: 'Domain experts simulated inside the alignment space:', 
+          subBullets: [
+            'Family Agent: Casual tone, knows personal schedules.',
+            'Work Agent: Professional, protective of focus time.',
+            'Tool Agent: Manages Calendar and Search APIs.'
+          ]
+        }
+      ]
+    },
+    {
+      id: 'why-gemini',
+      title: 'The Engine of Speed',
+      subtitle: 'Why Gemini 3.5 Flash?',
+      icon: <Zap className="h-10 w-10 text-yellow-450 text-yellow-400" />,
+      color: 'from-yellow-400 via-amber-200 to-orange-400',
+      bullets: [
+        { label: 'Instant Feedback', text: 'Sub-200ms latency for real-time "Gym" interaction.' },
+        { label: 'High Throughput', text: 'Processes thousands of historical emails in seconds.' },
+        { label: 'Long Context', text: '1M context window stores your entire communication history.' }
+      ]
+    },
+    {
+      id: 'infrastructure',
+      title: 'Managed Agents',
+      subtitle: 'Google\'s high-security infrastructure: Security, Memory, & Native Tools',
+      icon: <ShieldAlert className="h-10 w-10 text-blue-400" />,
+      color: 'from-blue-400 via-indigo-200 to-cyan-400',
+      bullets: [
+        { label: 'Secure Sandbox (The Locked Office)', text: 'Isolates each sub-agent. The Work Agent cannot see the Family Agent\'s actions, preventing leaks of sensitive data (simulated in sandbox).' },
+        { label: 'Persistent State (The Memory Cabinet)', text: 'Gives agents a memory. They remember exactly what you taught them, your rules, and your points across sessions (built via local storage).' },
+        { label: 'Native Tools (The Built-In Apps)', text: 'Out-of-the-box secure tools. The agent uses Google Search and Google Calendar to check availability before recommending actions (built via Calendar API & Gemini grounding).' }
+      ]
+    },
+    {
+      id: 'impact',
+      title: 'Moving Toward True Autonomy',
+      subtitle: 'The "Never Been Built" Impact',
+      icon: <CheckCircle className="h-10 w-10 text-purple-400" />,
+      color: 'from-purple-400 via-violet-200 to-indigo-400',
+      bullets: [
+        { text: 'Shifts AI from "Assistant" to "Digital Twin."' },
+        { text: 'Verifiable trust through a points-based audit trail.' },
+        { text: 'The first physical-to-digital training environment for LLMs.' }
+      ]
     }
   ];
 
@@ -377,87 +187,170 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
 
   const slide = slides[currentSlide];
 
+  // Helper to extract the color name from the gradient for text and bg styling
+  const getColorName = (gradient: string) => {
+    const parts = gradient.split(' ');
+    const fromColor = parts[0] || 'from-blue-400';
+    return fromColor.replace('from-', '').replace('-400', '');
+  };
+
+  const colorName = getColorName(slide.color);
+
   return (
-    <div className="flex-grow bg-slate-950 p-6 flex flex-col justify-between h-full text-white font-sans relative overflow-hidden select-none">
+    <div className="flex-grow bg-slate-950 p-6 flex flex-col justify-between min-h-[90vh] text-white font-sans relative overflow-hidden select-none">
       
       {/* Dynamic Background Grid Pattern */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:3.5rem_3.5rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] opacity-35" />
 
       {/* Slide Deck Header */}
-      <div className="relative z-10 flex items-center justify-between border-b border-slate-800 pb-4">
-        <div className="flex items-center gap-2">
-          <div className="h-7 w-7 bg-blue-500/10 rounded-lg flex items-center justify-center border border-blue-500/20">
-            <Sparkles className="h-4 w-4 text-blue-400" />
+      <div className="relative z-10 flex items-center justify-between border-b border-slate-800/80 pb-4">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 bg-slate-900/60 rounded-xl flex items-center justify-center border border-slate-800">
+            <Sparkles className="h-4.5 w-4.5 text-blue-400 animate-pulse" />
           </div>
           <div>
-            <span className="text-[10px] uppercase tracking-widest font-bold text-slate-500 font-mono">Demo Presentation Deck</span>
-            <p className="text-xs font-bold text-slate-300">AgentGym Alignment Suite</p>
+            <span className="text-[9px] uppercase tracking-widest font-extrabold text-slate-500 font-mono">PITCH DECK</span>
+            <p className="text-xs font-bold text-slate-350 tracking-tight">The Inbox Gym</p>
           </div>
         </div>
 
-        <div className="text-xs text-slate-400 font-mono">
-          Slide <span className="text-white font-bold">{currentSlide + 1}</span> of <span className="text-slate-500">{slides.length}</span>
+        <div className="text-xs text-slate-400 font-mono bg-slate-900/60 px-3 py-1 rounded-full border border-slate-850">
+          Slide <span className="text-white font-bold">{currentSlide + 1}</span> of <span className="text-slate-500 font-bold">{slides.length}</span>
         </div>
       </div>
 
       {/* Main Slide Workspace Container */}
-      <div className="relative z-10 my-auto py-6 flex flex-col items-center">
+      <div className="relative z-10 my-auto py-8 flex flex-col items-center w-full max-w-4xl mx-auto overflow-y-auto max-h-[72vh] px-2 scrollbar-none">
         <AnimatePresence mode="wait">
           <motion.div
             key={slide.id}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
             transition={{ duration: 0.25 }}
-            className="w-full text-center space-y-4 max-w-2xl px-4"
+            className="w-full text-center space-y-6"
           >
-            <div className="mx-auto h-16 w-16 bg-slate-900/60 rounded-full border border-slate-800 flex items-center justify-center mb-1">
-              {slide.icon}
+            {/* Top Icon container with pulsing aura */}
+            <div className="relative mx-auto h-20 w-20 flex items-center justify-center mb-2">
+              <div className={`absolute inset-0 bg-${colorName}-500/10 rounded-full blur-xl animate-pulse`} />
+              <div className="relative z-10 h-16 w-16 bg-slate-900/80 rounded-2xl border border-slate-800 flex items-center justify-center shadow-lg">
+                {slide.icon}
+              </div>
             </div>
 
-            <span className="text-xs font-bold font-mono uppercase tracking-widest text-blue-400">
-              {slide.tagline}
-            </span>
-
-            <h2 className="text-2xl sm:text-3xl font-display font-extrabold tracking-tight text-white leading-tight">
+            {/* Slide Title */}
+            <h2 className={`text-4xl md:text-5xl lg:text-6xl font-black bg-gradient-to-r ${slide.color} bg-clip-text text-transparent tracking-tight leading-none`}>
               {slide.title}
             </h2>
 
-            <p className="text-slate-400 text-xs sm:text-sm max-w-lg mx-auto">
+            {/* Slide Subtitle */}
+            <p className="text-slate-300 text-lg md:text-xl font-medium max-w-2xl mx-auto tracking-tight leading-relaxed">
               {slide.subtitle}
             </p>
 
-            <div className="pt-4">
-              {slide.content}
+            {/* Slide Bullet points */}
+            <div className="w-full max-w-3xl mx-auto mt-8 grid grid-cols-1 gap-4 text-left">
+              {slide.bullets.map((bullet, index) => (
+                <motion.div
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.08, duration: 0.25 }}
+                  key={index}
+                  className="group bg-slate-900/40 backdrop-blur-md border border-slate-900 hover:border-slate-800 hover:bg-slate-900/60 p-5 rounded-2xl flex flex-col justify-between gap-4 transition-all duration-300 shadow-xl"
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Bullet indicator */}
+                    <div className={`h-8 w-8 rounded-xl bg-slate-950 border border-slate-850 text-slate-300 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 group-hover:border-slate-700 transition-colors`}>
+                      {index + 1}
+                    </div>
+
+                    <div className="space-y-2 w-full">
+                      <p className="text-base md:text-lg text-slate-300 font-medium leading-relaxed">
+                        {bullet.label && (
+                          <span className={`font-extrabold mr-2 tracking-tight bg-${colorName}-500/10 text-${colorName}-400 px-2 py-0.5 rounded-lg border border-${colorName}-500/15`}>
+                            {bullet.label}
+                          </span>
+                        )}
+                        {bullet.text}
+                      </p>
+                      
+                      {/* Nested Sub-bullets */}
+                      {bullet.subBullets && (
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4 pt-3 border-t border-slate-800/40">
+                          {bullet.subBullets.map((sub, subIdx) => {
+                            const [subLabel, ...subRest] = sub.split(':');
+                            const subText = subRest.join(':');
+                            return (
+                              <div key={subIdx} className="bg-slate-950/60 border border-slate-850 p-3 rounded-xl flex flex-col justify-between hover:border-slate-800 transition-colors">
+                                <span className={`text-[10px] font-extrabold tracking-wider uppercase font-mono text-${colorName}-400`}>
+                                  {subLabel}
+                                </span>
+                                <span className="text-xs text-slate-400 mt-1 leading-normal">
+                                  {subText}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
             </div>
+
+            {/* Special Call to Action on the Final Slide */}
+            {slide.id === 'impact' && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.35 }}
+                className="mt-8 flex justify-center"
+              >
+                <div className="relative group">
+                  <div className={`absolute -inset-1 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl blur-md opacity-75 group-hover:opacity-100 transition-opacity duration-300 animate-pulse`} />
+                  <button
+                    onClick={onStartTraining}
+                    className="relative inline-flex items-center gap-3 bg-slate-950 hover:bg-slate-900 text-white border border-slate-800 hover:border-slate-700 font-extrabold text-xs uppercase tracking-widest px-8 py-4 rounded-xl shadow-2xl transition duration-300 transform hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
+                  >
+                    <CheckCircle className="h-4.5 w-4.5 text-emerald-400 animate-bounce" />
+                    Launch Sandbox Workout Room
+                  </button>
+                </div>
+              </motion.div>
+            )}
+
           </motion.div>
         </AnimatePresence>
       </div>
 
       {/* Footer Navigation Bar */}
-      <div className="relative z-10 border-t border-slate-800 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="relative z-10 border-t border-slate-800/80 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4">
         
-        {/* Navigation tips */}
-        <div className="text-[10.5px] text-slate-500 flex items-center gap-2 font-mono">
-          <span>Keyboard:</span>
-          <span className="bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded text-slate-300 font-bold">&larr;</span>
-          <span>Previous</span>
-          <span className="bg-slate-900 border border-slate-800 px-1.5 py-0.5 rounded text-slate-300 font-bold">&rarr;</span>
+        {/* Keyboard hints */}
+        <div className="text-[10px] text-slate-500 flex items-center gap-2 font-mono bg-slate-900/40 px-3 py-1.5 rounded-xl border border-slate-900">
+          <span>Navigation:</span>
+          <span className="bg-slate-950 border border-slate-850 px-1.5 py-0.5 rounded text-slate-400 font-bold">&larr;</span>
+          <span>Prev</span>
+          <span className="bg-slate-950 border border-slate-850 px-1.5 py-0.5 rounded text-slate-400 font-bold">&rarr;</span>
           <span>Next</span>
         </div>
 
         {/* Slide Dots Navigator */}
-        <div className="flex gap-2.5">
-          {slides.map((s, idx) => (
-            <button
-              key={s.id}
-              onClick={() => setCurrentSlide(idx)}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                currentSlide === idx ? 'w-6 bg-blue-500' : 'w-2 bg-slate-700 hover:bg-slate-500'
-              }`}
-              title={s.title}
-            />
-          ))}
+        <div className="flex gap-2">
+          {slides.map((s, idx) => {
+            const activeColorClass = `bg-${getColorName(s.color)}-500`;
+            return (
+              <button
+                key={s.id}
+                onClick={() => setCurrentSlide(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  currentSlide === idx ? `w-6 ${activeColorClass}` : 'w-1.5 bg-slate-800 hover:bg-slate-650'
+                }`}
+                title={s.title}
+              />
+            );
+          })}
         </div>
 
         {/* Action Arrows */}
@@ -467,8 +360,8 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
             disabled={currentSlide === 0}
             className={`p-2.5 rounded-xl border transition ${
               currentSlide === 0 
-                ? 'border-slate-850 text-slate-700 bg-slate-950/40 cursor-not-allowed' 
-                : 'border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800'
+                ? 'border-slate-900 text-slate-800 bg-slate-950/40 cursor-not-allowed' 
+                : 'border-slate-850 hover:border-slate-700 text-slate-400 hover:text-white bg-slate-900/60 hover:bg-slate-800'
             }`}
           >
             <ArrowLeft className="h-4 w-4" />
@@ -477,14 +370,14 @@ export default function PitchDeck({ onStartTraining }: PitchDeckProps) {
           {currentSlide === slides.length - 1 ? (
             <button
               onClick={onStartTraining}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs uppercase tracking-wider px-4 py-2.5 rounded-xl shadow-xs transition"
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] uppercase tracking-wider px-5 py-2.5 rounded-xl shadow-md transition transform hover:-translate-y-0.5 active:translate-y-0"
             >
               Start Training
             </button>
           ) : (
             <button
               onClick={handleNext}
-              className="p-2.5 rounded-xl border border-slate-800 hover:border-slate-600 text-slate-400 hover:text-white bg-slate-900 hover:bg-slate-800 transition"
+              className="p-2.5 rounded-xl border border-slate-850 hover:border-slate-700 text-slate-400 hover:text-white bg-slate-900/60 hover:bg-slate-800 transition"
             >
               <ArrowRight className="h-4 w-4" />
             </button>

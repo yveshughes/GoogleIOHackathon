@@ -19,31 +19,47 @@ export default function App() {
   const [emails, setEmails] = useState<Email[]>(SEED_EMAILS);
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(SEED_EMAILS[0].id);
   const [activeMenu, setActiveMenu] = useState<string>('inbox');
-  const [trustScore, setTrustScore] = useState<number>(15); // Base sandbox rating
-  const [logs, setLogs] = useState<TrainingLog[]>([]);
+  const [trustScore, setTrustScore] = useState<number>(() => {
+    const saved = localStorage.getItem('gym_trustScore');
+    return saved ? parseInt(saved, 10) : 15;
+  });
+  const [logs, setLogs] = useState<TrainingLog[]>(() => {
+    const saved = localStorage.getItem('gym_logs');
+    try {
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
   const [proposedActions, setProposedActions] = useState<ProposedActions | null>(null);
   
   // Custom alignment guidance rules
-  const [policies, setPolicies] = useState<PolicyRule[]>([
-    {
-      id: 'rule_family',
-      title: 'Family Response Filter',
-      instructions: 'Do not automatically suggest cold schedule links to family and wife (Nina). Provide directly helpful, warm, manual confirmations.',
-      isActive: true
-    },
-    {
-      id: 'rule_billing',
-      title: 'Billing Priority Elevation',
-      instructions: 'Billing payment decline warnings represent severe system outages. Immediately escalate for human review instead of archiving.',
-      isActive: true
-    },
-    {
-      id: 'rule_saas_trial',
-      title: 'SaaS Sales Deferrals',
-      instructions: 'Treat limited-time purchase trial promotions from tools as non-critical. Snooze response and hold credit credentials securely.',
-      isActive: true
-    }
-  ]);
+  const [policies, setPolicies] = useState<PolicyRule[]>(() => {
+    const saved = localStorage.getItem('gym_policies');
+    try {
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return [
+      {
+        id: 'rule_family',
+        title: 'Family Response Filter',
+        instructions: 'Do not automatically suggest cold schedule links to family and wife (Nina). Provide directly helpful, warm, manual confirmations.',
+        isActive: true
+      },
+      {
+        id: 'rule_billing',
+        title: 'Billing Priority Elevation',
+        instructions: 'Billing payment decline warnings represent severe system outages. Immediately escalate for human review instead of archiving.',
+        isActive: true
+      },
+      {
+        id: 'rule_saas_trial',
+        title: 'SaaS Sales Deferrals',
+        instructions: 'Treat limited-time purchase trial promotions from tools as non-critical. Snooze response and hold credit credentials securely.',
+        isActive: true
+      }
+    ];
+  });
 
   // View states
   const [isGeneratingOptions, setIsGeneratingOptions] = useState<boolean>(false);
@@ -63,6 +79,18 @@ export default function App() {
   const [cameraAvailable, setCameraAvailable] = useState<boolean>(false);
   const [calories, setCalories] = useState<number>(0);
   const [lastGesture, setLastGesture] = useState<'center' | 'left' | 'right'>('center');
+  // Save states to localStorage on change
+  useEffect(() => {
+    localStorage.setItem('gym_trustScore', trustScore.toString());
+  }, [trustScore]);
+
+  useEffect(() => {
+    localStorage.setItem('gym_logs', JSON.stringify(logs));
+  }, [logs]);
+
+  useEffect(() => {
+    localStorage.setItem('gym_policies', JSON.stringify(policies));
+  }, [policies]);
 
   // Track head movements to increment calories count
   useEffect(() => {
@@ -219,7 +247,7 @@ export default function App() {
       const res = await fetch("/api/gemini/generate-options", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, policy: activePoliciesString }),
+        body: JSON.stringify({ email, policy: activePoliciesString, token: gmailToken }),
       });
 
       if (res.ok) {

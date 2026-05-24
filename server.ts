@@ -225,14 +225,63 @@ function handleApiError(error: any) {
 
   if (isQuotaOrLimit) {
     isApiRateLimited = true;
-    rateLimitUntil = Date.now() + 30 * 60 * 1000; // 30 minutes of clean, interruption-free local simulation mode
+    rateLimitUntil = Date.now() + 30 * 60 * 1000;
     console.info("INFO: Google Gemini 3.5-Flash Quota/Rate Limit (429) activated. Dynamic local high-fidelity simulation session engaged for 30 minutes.");
+  }
+}
+
+// Helper to query user's upcoming calendar schedule from Google Calendar API
+async function fetchCalendarEvents(token: string): Promise<string> {
+  try {
+    const timeMin = new Date().toISOString();
+    const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&maxResults=8&singleEvents=true&orderBy=startTime`;
+    
+    console.log("Querying live Google Calendar API for native schedule alignment checks...");
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.warn("Google Calendar API request failed:", errText);
+      return "Unable to fetch live calendar events. (API error)";
+    }
+
+    const data = await response.json();
+    const items = data.items || [];
+    if (items.length === 0) {
+      return "Your calendar is currently clear. No upcoming conflicts.";
+    }
+
+    const eventsList = items
+      .map((item: any) => {
+        const start = item.start?.dateTime || item.start?.date || "Unknown time";
+        const summary = item.summary || "Untitled Event";
+        let formattedTime = start;
+        try {
+          formattedTime = new Date(start).toLocaleString([], {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+        } catch (e) {}
+        return `- ${summary} (${formattedTime})`;
+      })
+      .join("\n");
+
+    return eventsList;
+  } catch (err: any) {
+    console.warn("Exception while fetching calendar events:", err.message || err);
+    return "Unable to fetch live calendar events. (Network error)";
   }
 }
 
 // REST route to generate smart options based on user custom policies
 app.post("/api/gemini/generate-options", async (req, res) => {
-  const { email, policy } = req.body;
+  const { email, policy, token } = req.body;
   if (!email) {
     return res.status(400).json({ error: "Email object is required" });
   }
@@ -250,6 +299,16 @@ app.post("/api/gemini/generate-options", async (req, res) => {
     if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "MOCK_KEY") {
       console.log("Using dynamic fallback simulation...");
       return res.json(runSimulatedGenerateOptions(email));
+    }
+
+    // Fetch calendar events dynamically
+    let calendarEvents = "No calendar token provided. Using default schedule.";
+    if (token && token !== "MOCK_SANDBOX_TOKEN") {
+      calendarEvents = await fetchCalendarEvents(token);
+    } else {
+      calendarEvents = `- Worked out at AgentGym (9:00 AM)
+- Team Huddle (11:00 AM)
+- Working Session (2:00 PM - 5:00 PM)`;
     }
 
     // Real Gemini 3.5 Flash API Call
@@ -291,9 +350,12 @@ ${body}
 PREVIOUS FAILED AUTOMATOR ACTION: 
 "${previousFailedAction}"
 
+USER'S UPCOMING CALENDAR SCHEDULE (NATIVE TOOL QUERY RESULT):
+${calendarEvents}
+
 Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sandbox criteria and active user rules.`;
 
-    console.log("Calling Gemini 3.5 Flash for active email dispositioning...");
+    console.log("Calling Gemini 3.5 Flash for active email dispositioning with search grounding tools...");
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
       contents: promptText,
@@ -301,6 +363,7 @@ Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sand
         systemInstruction: systemPrompt,
         responseMimeType: "application/json",
         temperature: 0.1,
+        tools: [{ googleSearch: {} }] // Real Google Search grounding tool!
       },
     });
 
@@ -663,7 +726,7 @@ app.get("/api/auth/google/url", (req, res) => {
     client_id: clientId,
     redirect_uri: redirectUri,
     response_type: "code",
-    scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.email",
+    scope: "https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/userinfo.email",
     access_type: "offline",
     prompt: "consent"
   });
