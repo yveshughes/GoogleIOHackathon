@@ -323,21 +323,65 @@ async function fetchCalendarEvents(token: string): Promise<string> {
   }
 }
 
+function extractManagedAgentText(responseText: string): { text: string; interactionId?: string; status?: string } {
+  let agentResponseText = "";
+  let interactionId: string | undefined;
+  let status: string | undefined;
+
+  try {
+    const json = JSON.parse(responseText);
+    interactionId = json.id || json.name || json.interaction?.id || json.interaction?.name;
+    status = json.status || json.interaction?.status;
+    const outputText =
+      json.interaction?.output?.[0]?.content?.[0]?.text ||
+      json.interaction?.outputs?.[0]?.content?.[0]?.text ||
+      json.output?.[0]?.content?.[0]?.text ||
+      json.outputs?.[0]?.content?.[0]?.text ||
+      json.outputs?.[0]?.text;
+    if (outputText) {
+      agentResponseText = outputText;
+    }
+  } catch (e) {
+    const lines = responseText.split("\n");
+    for (const line of lines) {
+      if (line.trim().startsWith("data:")) {
+        try {
+          const data = JSON.parse(line.trim().substring(5).trim());
+          const chunkText = data.interaction?.output?.[0]?.content?.[0]?.text || data.chunk?.text || data.text;
+          if (chunkText) {
+            agentResponseText += chunkText;
+          }
+        } catch (err) {}
+      }
+    }
+  }
+
+  return { text: agentResponseText, interactionId, status };
+}
+
+function buildInteractionPollUrl(projectId: string, interactionId: string): URL {
+  const encodedId = encodeURIComponent(interactionId);
+  if (interactionId.startsWith("projects/")) {
+    return new URL(`https://aiplatform.googleapis.com/v1beta1/${interactionId}`);
+  }
+  return new URL(`https://aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/global/interactions/${encodedId}`);
+}
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 // Helper function to call real Google Cloud Managed Agents API (to spec)
 async function callManagedAgent(email: any, policy: string, token: string): Promise<any> {
-  const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT_ID;
+  const projectId = process.env.MANAGED_AGENT_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT_ID;
   if (!projectId) {
     throw new Error("No Google Cloud Project ID configured. Set GOOGLE_CLOUD_PROJECT in .env.local");
   }
 
-  // Determine Google Cloud Access Token:
-  // 1. If we have a custom token env var:
+  // The Agent Platform UI can create API keys, but the Vertex AI Interactions
+  // endpoint used here requires an OAuth/ADC principal for authorization.
   let gcpToken = process.env.GCP_ACCESS_TOKEN || "";
-  // 2. Or, if the request provided a valid non-mock oauth token:
-  if (!gcpToken && token && token !== "MOCK_SANDBOX_TOKEN") {
-    gcpToken = token;
-  }
-  // 3. Fallback: run local gcloud print-access-token (since the user is authenticated in gcloud CLI!)
+
   if (!gcpToken) {
     try {
       const { execSync } = await import("child_process");
@@ -348,10 +392,10 @@ async function callManagedAgent(email: any, policy: string, token: string): Prom
   }
 
   if (!gcpToken) {
-    throw new Error("No active Google Cloud access token found. Please run: gcloud auth application-default login");
+    throw new Error("No active Google Cloud access token found. Run the Agent Platform ADC setup or: gcloud auth login --update-adc");
   }
 
-  const url = `https://aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/global/interactions`;
+  const requestUrl = new URL(`https://aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/global/interactions`);
 
   let calendarEvents = "No calendar token provided. Using default schedule.";
   if (token && token !== "MOCK_SANDBOX_TOKEN") {
@@ -403,13 +447,13 @@ ${calendarEvents}
 
 Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sandbox criteria and active user rules.`;
 
-  const agentName = process.env.MANAGED_AGENT_ID || "antigravity-preview-05-2026";
+  const agentName = process.env.MANAGED_AGENT_ID || "agent_1779584463815";
 
   const requestBody = {
     agent: agentName,
     stream: false,
-    background: false,
-    store: false,
+    background: true,
+    store: true,
     environment: {
       type: "remote",
       network: {
@@ -429,15 +473,20 @@ Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sand
     ]
   };
 
-  console.log(`Calling Vertex AI Managed Agents API (${url}) using agent: ${agentName}...`);
+  console.log(`Calling Agent Platform Managed Agents API (${requestUrl.origin}${requestUrl.pathname}) using agent: ${agentName} in project ${projectId}...`);
 
-  const response = await fetch(url, {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "Api-Revision": "2026-05-20"
+  };
+
+  if (gcpToken) {
+    headers.Authorization = `Bearer ${gcpToken}`;
+  }
+
+  const response = await fetch(requestUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${gcpToken}`,
-      "Api-Revision": "2026-05-20"
-    },
+    headers,
     body: JSON.stringify(requestBody)
   });
 
@@ -447,25 +496,24 @@ Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sand
   }
 
   const responseText = await response.text();
-  let agentResponseText = "";
-  
-  try {
-    const json = JSON.parse(responseText);
-    const outputText = json.interaction?.output?.[0]?.content?.[0]?.text || json.output?.[0]?.content?.[0]?.text;
-    if (outputText) {
-      agentResponseText = outputText;
-    }
-  } catch (e) {
-    const lines = responseText.split("\n");
-    for (const line of lines) {
-      if (line.trim().startsWith("data:")) {
-        try {
-          const data = JSON.parse(line.trim().substring(5).trim());
-          const chunkText = data.interaction?.output?.[0]?.content?.[0]?.text || data.chunk?.text || data.text;
-          if (chunkText) {
-            agentResponseText += chunkText;
-          }
-        } catch (err) {}
+  let { text: agentResponseText, interactionId, status } = extractManagedAgentText(responseText);
+
+  if (!agentResponseText && interactionId) {
+    const pollUrl = buildInteractionPollUrl(projectId, interactionId);
+    for (let attempt = 0; attempt < 12; attempt++) {
+      await sleep(2500);
+      const pollResponse = await fetch(pollUrl, { headers });
+      const pollText = await pollResponse.text();
+      if (!pollResponse.ok) {
+        throw new Error(`Managed Agents poll returned status ${pollResponse.status}: ${pollText}`);
+      }
+
+      const extracted = extractManagedAgentText(pollText);
+      agentResponseText = extracted.text;
+      status = extracted.status || status;
+      if (agentResponseText) break;
+      if (status && ["failed", "cancelled", "canceled"].includes(status.toLowerCase())) {
+        throw new Error(`Managed Agents interaction ended with status ${status}: ${pollText}`);
       }
     }
   }
@@ -475,14 +523,32 @@ Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sand
     if (jsonMatch) {
       try {
         const parsed = JSON.parse(jsonMatch[0]);
-        if (parsed.recommendation) return parsed;
+        if (parsed.recommendation) {
+          return {
+            ...parsed,
+            managedAgentRuntime: {
+              status: "success",
+              projectId,
+              agentName,
+              auth: "cloud_token"
+            }
+          };
+        }
       } catch (err) {}
     }
     throw new Error(`Could not find formatted output JSON text in Managed Agents response: ${responseText}`);
   }
 
   const cleanedText = agentResponseText.replace(/```json/g, "").replace(/```/g, "").trim();
-  return JSON.parse(cleanedText);
+  return {
+    ...JSON.parse(cleanedText),
+    managedAgentRuntime: {
+      status: "success",
+      projectId,
+      agentName,
+      auth: "cloud_token"
+    }
+  };
 }
 
 // REST route to generate smart options based on user custom policies
@@ -493,13 +559,9 @@ app.post("/api/gemini/generate-options", async (req, res) => {
   }
 
   const { sender, senderEmail, subject, body, previousFailedAction } = email;
+  let managedAgentError = "";
 
   try {
-    // Check if API is in rate-limit cooloff
-    if (checkRateLimit()) {
-      return res.json(runSimulatedGenerateOptions(email));
-    }
-
     // Call live Managed Agents API to spec if explicitly configured
     if (process.env.USE_MANAGED_AGENTS === "true") {
       try {
@@ -507,15 +569,33 @@ app.post("/api/gemini/generate-options", async (req, res) => {
         const dataParsed = await callManagedAgent(email, policy, token);
         return res.json(dataParsed);
       } catch (err: any) {
+        managedAgentError = err.message || String(err);
         console.warn("WARNING: Live Vertex AI Managed Agents integration failed. Falling back to direct Gemini API key processing:", err.message || err);
       }
+    }
+
+    // Check if Gemini API is in rate-limit cooloff after Managed Agents have had a chance to run.
+    if (checkRateLimit()) {
+      return res.json({
+        ...runSimulatedGenerateOptions(email),
+        managedAgentRuntime: {
+          status: "fallback",
+          reason: managedAgentError || "Managed Agents not enabled or unavailable; Gemini direct path is in rate-limit cooloff."
+        }
+      });
     }
 
     // Check if API key is mock or missing
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey || apiKey === "MY_GEMINI_API_KEY" || apiKey === "MOCK_KEY") {
       console.log("Using dynamic fallback simulation...");
-      return res.json(runSimulatedGenerateOptions(email));
+      return res.json({
+        ...runSimulatedGenerateOptions(email),
+        managedAgentRuntime: {
+          status: "fallback",
+          reason: managedAgentError || "Managed Agents not enabled or unavailable; Gemini API key is missing."
+        }
+      });
     }
 
     // Fetch calendar events dynamically
@@ -586,7 +666,17 @@ Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sand
 
     const textOutput = response.text || "";
     const dataParsed = JSON.parse(textOutput.trim());
-    return res.json(dataParsed);
+    return res.json({
+      ...dataParsed,
+      managedAgentRuntime: managedAgentError ? {
+        status: "fallback",
+        reason: managedAgentError,
+        fallback: "direct_gemini"
+      } : {
+        status: "not_used",
+        fallback: "direct_gemini"
+      }
+    });
 
   } catch (error: any) {
     handleApiError(error);
@@ -596,7 +686,14 @@ Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sand
       console.warn("WARNING: Gemini API call failed. Falling back gracefully to simulated results.", error.message || error);
     }
     // Graceful error fallback
-    return res.json(runSimulatedGenerateOptions(email));
+    return res.json({
+      ...runSimulatedGenerateOptions(email),
+      managedAgentRuntime: {
+        status: "fallback",
+        reason: managedAgentError || error.message || String(error),
+        fallback: "simulation"
+      }
+    });
   }
 });
 
