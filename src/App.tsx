@@ -33,6 +33,7 @@ export default function App() {
     }
   });
   const [proposedActions, setProposedActions] = useState<ProposedActions | null>(null);
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(false);
   
   // Custom alignment guidance rules
   const [policies, setPolicies] = useState<PolicyRule[]>(() => {
@@ -215,6 +216,18 @@ export default function App() {
       console.error('OAuth connection error:', error);
       // Fallback securely and silently
       await handleImportGmailEmails("MOCK_SANDBOX_TOKEN");
+    }
+  };
+
+  const handleToggleDemoMode = async (enabled: boolean) => {
+    setIsDemoMode(enabled);
+    if (enabled) {
+      await handleImportGmailEmails("MOCK_SANDBOX_TOKEN");
+    } else {
+      setEmails(SEED_EMAILS);
+      setSelectedEmailId(SEED_EMAILS[0].id);
+      setGmailToken(null);
+      setActiveGmailEmail(null);
     }
   };
 
@@ -506,6 +519,8 @@ export default function App() {
         isSyncingGmail={isSyncingGmail}
         onConnectGmail={handleConnectGmail}
         isGeneratingOptions={isGeneratingOptions}
+        isDemoMode={isDemoMode}
+        onToggleDemoMode={handleToggleDemoMode}
       />
 
       {/* Floating Picture-In-Picture Webcam / Gesture tracking HUD */}

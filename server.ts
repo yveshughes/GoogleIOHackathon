@@ -9,9 +9,50 @@ dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 const app = express();
+app.set("trust proxy", true);
 app.use(express.json());
 
 const PORT = 3000;
+const OAUTH_CALLBACK_PATH = "/api/auth/google/callback";
+
+function getValidUrl(value: string | undefined): URL | null {
+  if (!value) return null;
+
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.includes("...")) return null;
+
+  try {
+    const url = new URL(trimmed);
+    return url.protocol === "http:" || url.protocol === "https:" ? url : null;
+  } catch {
+    return null;
+  }
+}
+
+function getRequestOrigin(req: express.Request): string {
+  const forwardedHost = req.get("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || req.get("host") || `localhost:${PORT}`;
+  const forwardedProtocol = req.get("x-forwarded-proto")?.split(",")[0]?.trim();
+  const protocol = forwardedProtocol || (req.secure ? "https" : "http");
+
+  return `${protocol}://${host}`;
+}
+
+function appendOAuthCallbackPath(origin: string): string {
+  return `${origin.replace(/\/+$/, "")}${OAUTH_CALLBACK_PATH}`;
+}
+
+function getOAuthRedirectUri(req: express.Request): string {
+  const explicitRedirect = getValidUrl(process.env.GOOGLE_REDIRECT_URI || process.env.OAUTH_REDIRECT_URI);
+  if (explicitRedirect) return explicitRedirect.toString();
+
+  const configuredOrigin = getValidUrl(process.env.APP_URL || process.env.PUBLIC_APP_URL);
+  if (configuredOrigin) {
+    return appendOAuthCallbackPath(configuredOrigin.origin);
+  }
+
+  return appendOAuthCallbackPath(getRequestOrigin(req));
+}
 
 // Lazy initialize Google Gen AI
 let aiClient: GoogleGenAI | null = null;
@@ -893,10 +934,7 @@ function parseGmailMessage(msg: any): any {
 // 1. GET /api/auth/google/url - Create Google OAuth authorization URL
 app.get("/api/auth/google/url", (req, res) => {
   const clientId = process.env.GOOGLE_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID || "";
-  const host = req.get("host");
-  // Ensure we use dynamic secure protocol for the preview environment
-  const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
-  const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+  const redirectUri = getOAuthRedirectUri(req);
 
   const params = new URLSearchParams({
     client_id: clientId,
@@ -908,7 +946,8 @@ app.get("/api/auth/google/url", (req, res) => {
   });
 
   const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
-  res.json({ url: authUrl, configured: !!clientId });
+  console.log(`[OAuth] Generated Google auth URL with redirect_uri=${redirectUri}`);
+  res.json({ url: authUrl, configured: !!clientId, redirectUri });
 });
 
 // 2. GET /api/auth/google/callback - Handle OAuth Callback & Token Exchange
@@ -940,11 +979,9 @@ app.get(["/api/auth/google/callback", "/api/auth/google/callback/"], async (req,
   try {
     const clientId = process.env.GOOGLE_CLIENT_ID || process.env.OAUTH_CLIENT_ID || process.env.CLIENT_ID || "";
     const clientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.OAUTH_CLIENT_SECRET || process.env.CLIENT_SECRET || "";
-    const host = req.get("host");
-    const protocol = req.secure || req.headers["x-forwarded-proto"] === "https" ? "https" : "http";
-    const redirectUri = `${protocol}://${host}/api/auth/google/callback`;
+    const redirectUri = getOAuthRedirectUri(req);
 
-    console.log("Exchanging authorize code with Google for tokens...");
+    console.log(`[OAuth] Exchanging authorize code with redirect_uri=${redirectUri}`);
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },

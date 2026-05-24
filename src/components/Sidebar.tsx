@@ -16,6 +16,8 @@ interface SidebarProps {
   isSyncingGmail: boolean;
   onConnectGmail: () => void;
   isGeneratingOptions?: boolean;
+  isDemoMode: boolean;
+  onToggleDemoMode: (enabled: boolean) => void;
 }
 
 export default function Sidebar({
@@ -30,7 +32,9 @@ export default function Sidebar({
   activeGmailEmail,
   isSyncingGmail,
   onConnectGmail,
-  isGeneratingOptions = false
+  isGeneratingOptions = false,
+  isDemoMode,
+  onToggleDemoMode
 }: SidebarProps) {
   const [prevTrustScore, setPrevTrustScore] = useState<number>(trustScore);
   const [showBriefPoints, setShowBriefPoints] = useState<boolean>(false);
@@ -132,18 +136,48 @@ export default function Sidebar({
   return (
     <aside className="w-68 flex-shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col h-full font-sans">
       {/* Sidebar Logo */}
-      <div className="p-4 flex items-center gap-3">
-        <div className="h-8 w-8 flex items-center justify-center bg-white shadow-sm rounded-lg border border-slate-200">
-          <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4H20Z" fill="#EA4335" />
-            <path d="M22 6V18C22 19.1 21.1 20 20 20H18V8L12 13L6 8V20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4H6L12 9L18 4H20C21.1 4 22 4.9 22 6Z" fill="#34A853" />
-            <path d="M12 13L22 6V18C22 19.1 21.1 20 20 20H18V8L12 13Z" fill="#4285F4" />
-            <path d="M12 13L2 6V18C2 19.1 2.9 20 4 20H6V8L12 13Z" fill="#FBBC05" />
-          </svg>
+      <div className="p-4 flex items-center justify-between border-b border-slate-200/50 bg-slate-50/50">
+        <div className="flex items-center gap-3">
+          <div className="h-8 w-8 flex items-center justify-center bg-white shadow-sm rounded-lg border border-slate-200">
+            <svg className="h-6 w-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M20 4H4C2.9 4 2 4.9 2 6V18C2 19.1 2.9 20 4 20H20C21.1 20 22 19.1 22 18V6C22 4.9 21.1 4H20Z" fill="#EA4335" />
+              <path d="M22 6V18C22 19.1 21.1 20 20 20H18V8L12 13L6 8V20H4C2.9 20 2 19.1 2 18V6C2 4.9 2.9 4 4 4H6L12 9L18 4H20C21.1 4 22 4.9 22 6Z" fill="#34A853" />
+              <path d="M12 13L22 6V18C22 19.1 21.1 20 20 20H18V8L12 13Z" fill="#4285F4" />
+              <path d="M12 13L2 6V18C2 19.1 2.9 20 4 20H6V8L12 13Z" fill="#FBBC05" />
+            </svg>
+          </div>
+          <div>
+            <h1 className="text-md font-bold text-slate-900 tracking-tight leading-none">AgentGym</h1>
+            <span className="text-[10px] text-slate-500 font-medium">Mail Sandbox v3.5</span>
+          </div>
         </div>
-        <div>
-          <h1 className="text-md font-bold text-slate-900 tracking-tight leading-none">AgentGym</h1>
-          <span className="text-xs text-slate-500 font-medium">Mail Sandbox v3.5</span>
+
+        {/* Demo Switch Toggle */}
+        <div 
+          onClick={() => onToggleDemoMode(!isDemoMode)}
+          className={`flex items-center gap-1.5 py-1 px-2 rounded-lg border cursor-pointer select-none transition-all duration-200 ${
+            isDemoMode 
+              ? 'bg-indigo-50 border-indigo-200 shadow-xs' 
+              : 'bg-white border-slate-200 shadow-xs hover:border-slate-350'
+          }`}
+        >
+          {isSyncingGmail && isDemoMode && (
+            <RefreshCw className="h-2.5 w-2.5 text-indigo-600 animate-spin mr-0.5" />
+          )}
+          <span className={`text-[10px] font-extrabold uppercase tracking-wider ${
+            isDemoMode ? 'text-indigo-700' : 'text-slate-500'
+          }`}>Demo</span>
+          <button
+            className={`w-6.5 h-4 rounded-full transition-colors relative focus:outline-none cursor-pointer ${
+              isDemoMode ? 'bg-indigo-600' : 'bg-slate-300'
+            }`}
+          >
+            <span
+              className={`absolute top-0.5 left-0.5 bg-white w-2.5 h-2.5 rounded-full transition-transform ${
+                isDemoMode ? 'translate-x-3' : 'translate-x-0'
+              }`}
+            />
+          </button>
         </div>
       </div>
 
