@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Archive, Trash, MailOpen, AlertCircle, Activity, Sparkles, ArrowLeftRight, Wrench, Search, Layers, UserCheck } from 'lucide-react';
 import { Email, ProposedActions, PolicyRule } from '../types';
 
@@ -25,6 +26,186 @@ export default function EmailViewer({
   const [secondsHeld, setSecondsHeld] = useState<number>(0);
   const [activeHoldDirection, setActiveHoldDirection] = useState<'left' | 'right' | null>(null);
 
+  // Selection feedback state
+  const [showFeedback, setShowFeedback] = useState<{
+    option: 'option1' | 'option2';
+    pts: number;
+    isCorrect: boolean;
+  } | null>(null);
+
+  // Dictation states
+  const [isDictating, setIsDictating] = useState<boolean>(false);
+  const [dictatedText, setDictatedText] = useState<string>('');
+  const [isProcessingDictation, setIsProcessingDictation] = useState<boolean>(false);
+
+  const recognitionRef = useRef<any>(null);
+
+  // Reset feedback state on email change
+  useEffect(() => {
+    setShowFeedback(null);
+    setDictatedText('');
+  }, [email?.id]);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      const rec = new SpeechRecognition();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = 'en-US';
+
+      rec.onresult = (event: any) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+        const text = finalTranscript || interimTranscript;
+        setDictatedText(text);
+      };
+
+      rec.onerror = (e: any) => {
+        console.warn("Speech recognition error:", e);
+      };
+
+      recognitionRef.current = rec;
+    }
+  }, []);
+
+  const processDictation = async (text: string) => {
+    if (!text.trim() || !email) return;
+
+    setIsProcessingDictation(true);
+    try {
+      console.log("Sending voice feedback to Gemini aligner:", text);
+      const response = await fetch("/api/gemini/learn-from-voice", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          email: email,
+          voiceFeedback: text
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Voice feedback request failed with status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Gemini voice aligner response:", data);
+
+      if (data.newRule && data.proposedActions) {
+        // 1. Update rule manager lists and UI options
+        onVoiceFeedbackAligned(data.newRule, data.proposedActions);
+
+        // 2. Trigger Option 2 success feedback animation (+15 pts)
+        setShowFeedback({
+          option: 'option2',
+          pts: 15,
+          isCorrect: true
+        });
+
+        // 3. Pause 1800ms to allow user to read the new description and see the +15 pts bubble before advancing
+        setTimeout(() => {
+          onResolveDischarge('option2');
+          setShowFeedback(null);
+        }, 1800);
+      }
+    } catch (err: any) {
+      console.error("Error processing voice dictation feedback:", err);
+    } finally {
+      setIsProcessingDictation(false);
+      setDictatedText('');
+    }
+  };
+
+  // Keyboard listener for Fn and V keys push-to-talk
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isTriggerKey = e.key === 'Fn' || e.code === 'Fn' || e.key.toLowerCase() === 'v';
+
+      if (
+        !isTriggerKey ||
+        isDictating ||
+        isProcessingDictation ||
+        document.activeElement?.tagName === 'INPUT' ||
+        document.activeElement?.tagName === 'TEXTAREA'
+      ) {
+        return;
+      }
+
+      e.preventDefault();
+      setIsDictating(true);
+      setDictatedText('');
+
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.start();
+        } catch (err) {
+          console.warn("Failed to start speech recognition:", err);
+        }
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const isTriggerKey = e.key === 'Fn' || e.code === 'Fn' || e.key.toLowerCase() === 'v';
+
+      if (!isTriggerKey || !isDictating) {
+        return;
+      }
+
+      e.preventDefault();
+      setIsDictating(false);
+
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch (err) {
+          console.warn("Failed to stop speech recognition:", err);
+        }
+      }
+
+      const transcriptToSend = dictatedText.trim();
+      if (transcriptToSend) {
+        processDictation(transcriptToSend);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isDictating, isProcessingDictation, dictatedText, email]);
+
+  const handleCardClick = (optionChosen: 'option1' | 'option2') => {
+    if (!email || !proposedActions || showFeedback || isDictating || isProcessingDictation) return;
+
+    const isCorrect = proposedActions.recommendation === optionChosen;
+    const basePoints = email.points || 10;
+    const pts = isCorrect ? basePoints : -Math.round(basePoints * 0.4);
+
+    setShowFeedback({
+      option: optionChosen,
+      pts,
+      isCorrect
+    });
+
+    setTimeout(() => {
+      onResolveDischarge(optionChosen);
+      setShowFeedback(null);
+    }, 900);
+  };
+
   // Gesture locking logic
   useEffect(() => {
     if (gestureMode === 'left') {
@@ -48,7 +229,7 @@ export default function EmailViewer({
       }, 700);
     } else if (activeHoldDirection && secondsHeld === 3) {
       // Trigger decision!
-      onResolveDischarge(activeHoldDirection === 'left' ? 'option1' : 'option2');
+      handleCardClick(activeHoldDirection === 'left' ? 'option1' : 'option2');
       setActiveHoldDirection(null);
       setSecondsHeld(0);
     }
@@ -147,22 +328,21 @@ export default function EmailViewer({
           </div>
         ) : proposedActions ? (
           <div className="space-y-4 animate-fade-in">
-            {proposedActions.isSimulated && (
-              <div className="bg-amber-50/80 border border-amber-200 rounded-xl p-3 flex items-start gap-2 text-amber-900 shadow-2xs select-none">
-                <AlertCircle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div className="text-[10px] sm:text-xs">
-                  <span className="font-extrabold text-amber-950">Local Sandbox Aligner Engagement:</span> We've dynamically engaged local sandboxed representations. Move your head or click directly to play inside this sandbox.
-                </div>
-              </div>
-            )}
-
             {/* Options cards row */}
             <div className="grid grid-cols-2 gap-6">
               {/* Option 1 Option Card */}
               <div
-                onClick={() => onResolveDischarge('option1')}
+                onClick={() => handleCardClick('option1')}
                 className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer select-none flex flex-col justify-start min-h-[165px] group shadow-xs hover:shadow-md ${
-                  activeHoldDirection === 'left'
+                  showFeedback
+                    ? showFeedback.option === 'option1'
+                      ? showFeedback.isCorrect
+                        ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/20 scale-[0.98]'
+                        : 'border-rose-500 bg-rose-50/20 ring-4 ring-rose-500/20 scale-[0.98]'
+                      : 'opacity-40 scale-[0.97] blur-[0.5px]'
+                    : (isDictating || isProcessingDictation)
+                    ? 'opacity-40 scale-[0.97] blur-[0.5px]'
+                    : activeHoldDirection === 'left'
                     ? 'border-blue-600 ring-4 ring-blue-500/25 bg-blue-50/20 transform scale-[1.02]'
                     : proposedActions.recommendation === 'option1'
                     ? 'border-blue-400 bg-blue-50/5 hover:border-blue-600'
@@ -174,6 +354,24 @@ export default function EmailViewer({
                     ★ AI Recommended
                   </span>
                 )}
+
+                <AnimatePresence>
+                  {showFeedback && showFeedback.option === 'option1' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15, scale: 0.8, x: '-50%' }}
+                      animate={{ opacity: 1, y: -50, scale: 1.15, x: '-50%' }}
+                      exit={{ opacity: 0, y: -70, scale: 0.95, x: '-50%' }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                      className={`absolute top-1/2 left-1/2 px-5 py-2 rounded-full font-bold text-lg shadow-lg pointer-events-none z-30 flex items-center gap-1 border ${
+                        showFeedback.isCorrect
+                          ? 'bg-emerald-600 border-emerald-400 text-white'
+                          : 'bg-rose-600 border-rose-400 text-white'
+                      }`}
+                    >
+                      {showFeedback.isCorrect ? `+${showFeedback.pts} pts` : `${showFeedback.pts} pts`}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 <div>
                   <div className="flex justify-between items-center mb-2.5">
@@ -201,27 +399,59 @@ export default function EmailViewer({
 
               {/* Option 2 Option Card */}
               <div
-                onClick={() => onResolveDischarge('option2')}
+                onClick={() => handleCardClick('option2')}
                 className={`relative bg-white rounded-2xl p-6 border-2 transition-all duration-300 cursor-pointer select-none flex flex-col justify-start min-h-[165px] group shadow-xs hover:shadow-md ${
-                  activeHoldDirection === 'right'
+                  showFeedback
+                    ? showFeedback.option === 'option2'
+                      ? showFeedback.isCorrect
+                        ? 'border-emerald-500 bg-emerald-50/20 ring-4 ring-emerald-500/20 scale-[0.98]'
+                        : 'border-rose-500 bg-rose-50/20 ring-4 ring-rose-500/20 scale-[0.98]'
+                      : 'opacity-40 scale-[0.97] blur-[0.5px]'
+                    : isDictating
+                    ? 'border-indigo-500 bg-indigo-50/30 scale-[1.01] ring-4 ring-indigo-500/20'
+                    : isProcessingDictation
+                    ? 'border-amber-400 bg-amber-50/20 scale-[0.99] opacity-90'
+                    : activeHoldDirection === 'right'
                     ? 'border-indigo-600 ring-4 ring-indigo-500/25 bg-slow-50/20 transform scale-[1.02]'
                     : proposedActions.recommendation === 'option2'
                     ? 'border-indigo-400 bg-indigo-50/5 hover:border-indigo-600'
                     : 'border-slate-200 hover:border-slate-400'
                 }`}
               >
-                {proposedActions.recommendation === 'option2' && (
+                {proposedActions.recommendation === 'option2' && !isDictating && !isProcessingDictation && (
                   <span className="absolute -top-3.5 left-5 bg-indigo-600 text-white text-[10px] font-black px-3.5 py-1 rounded-full uppercase tracking-widest shadow-md">
                     ★ AI Recommended
                   </span>
                 )}
 
+                <AnimatePresence>
+                  {showFeedback && showFeedback.option === 'option2' && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15, scale: 0.8, x: '-50%' }}
+                      animate={{ opacity: 1, y: -50, scale: 1.15, x: '-50%' }}
+                      exit={{ opacity: 0, y: -70, scale: 0.95, x: '-50%' }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                      className={`absolute top-1/2 left-1/2 px-5 py-2 rounded-full font-bold text-lg shadow-lg pointer-events-none z-30 flex items-center gap-1 border ${
+                        showFeedback.isCorrect
+                          ? 'bg-emerald-600 border-emerald-400 text-white'
+                          : 'bg-rose-600 border-rose-400 text-white'
+                      }`}
+                    >
+                      {showFeedback.isCorrect ? `+${showFeedback.pts} pts` : `${showFeedback.pts} pts`}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <div>
                   <div className="flex justify-between items-center mb-2.5">
                     <span className="text-xs uppercase font-extrabold text-slate-400 tracking-widest block">
-                      Option 2
+                      {isDictating 
+                        ? 'Option 2 (🔴 Recording...)' 
+                        : isProcessingDictation 
+                        ? 'Option 2 (Voice Processing...)' 
+                        : 'Option 2'}
                     </span>
-                    {activeHoldDirection === 'right' && (
+                    {activeHoldDirection === 'right' && !isDictating && !isProcessingDictation && (
                       <span className="text-xs font-black text-indigo-600 animate-pulse bg-indigo-100 px-2 py-0.5 rounded">
                         HOLDING {3 - secondsHeld}s...
                       </span>
@@ -229,16 +459,36 @@ export default function EmailViewer({
                   </div>
 
                   <h4 className="text-base md:text-lg lg:text-xl font-black text-slate-950 tracking-tight leading-snug group-hover:text-indigo-600 transition-colors">
-                    {proposedActions.option2.actionText}
+                    {isDictating
+                      ? (dictatedText || "Dictating correction... (Speak now)")
+                      : isProcessingDictation
+                      ? (dictatedText || "Analyzing spoken guidelines...")
+                      : proposedActions.option2.actionText}
                   </h4>
 
-                  {proposedActions.option2.draft && (
+                  {isDictating ? (
+                    <div className="flex items-center gap-1 mt-4 h-6 animate-pulse">
+                      <div className="w-1 bg-indigo-500 rounded-full animate-bar-1" />
+                      <div className="w-1 bg-indigo-400 rounded-full animate-bar-2" />
+                      <div className="w-1 bg-indigo-650 bg-indigo-600 rounded-full animate-bar-3" />
+                      <div className="w-1 bg-indigo-500 rounded-full animate-bar-4" />
+                    </div>
+                  ) : isProcessingDictation ? (
+                    <div className="mt-3.5 text-xs md:text-sm text-amber-700 bg-amber-50 border-l-4 border-amber-500 p-3 rounded-r-xl italic leading-relaxed animate-pulse">
+                      Gemini is aligning the agent policy and updating options...
+                    </div>
+                  ) : proposedActions.option2.draft ? (
                     <div className="mt-3.5 text-xs md:text-sm text-slate-700 bg-slate-50 border-l-4 border-indigo-500 p-3 rounded-r-xl italic font-serif leading-relaxed line-clamp-3">
                       &ldquo;{proposedActions.option2.draft}&rdquo;
                     </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
+            </div>
+
+            {/* Pro Tip voice instruction line */}
+            <div className="text-[10px] text-slate-400 font-medium text-center select-none py-1">
+              Press and hold <span className="bg-slate-200/80 text-slate-700 px-1.5 py-0.5 rounded font-mono font-bold text-[9px] border border-slate-300">Fn</span> (or <span className="bg-slate-200/80 text-slate-700 px-1.5 py-0.5 rounded font-mono font-bold text-[9px] border border-slate-300">V</span>) to dictate a custom policy correction directly into Option 2
             </div>
 
             {/* Justification Text bar */}

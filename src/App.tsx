@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Mail, Star, HelpCircle, Activity, LayoutGrid, Download, Compass, ShieldCheck, CheckCircle2, ChevronRight, RefreshCw, XCircle, Trash2, Award, FileText, AlertTriangle } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import GestureFloatingPanel from './components/GestureFloatingPanel';
@@ -14,6 +14,7 @@ import { Email, ProposedActions, PolicyRule, TrainingLog, TrustHistoryPoint } fr
 
 export default function App() {
   const userEmail = "yveskhalila@gmail.com";
+  const isVoiceAligningRef = useRef(false);
 
   // Core application states
   const [emails, setEmails] = useState<Email[]>(SEED_EMAILS);
@@ -327,6 +328,10 @@ export default function App() {
 
   useEffect(() => {
     if (selectedEmailId && !isLoadingSandbox) {
+      if (isVoiceAligningRef.current) {
+        isVoiceAligningRef.current = false;
+        return;
+      }
       const email = emails.find(e => e.id === selectedEmailId);
       if (email) {
         fetchOptionsForEmail(email);
@@ -438,6 +443,7 @@ export default function App() {
 
   // Align policies dynamically using verbal voice feedback from Gemini
   const handleVoiceFeedbackAligned = (newRule: PolicyRule, updatedActions: ProposedActions) => {
+    isVoiceAligningRef.current = true;
     // 1. Add new policy rule
     setPolicies(prev => {
       const exists = prev.some(p => p.title.toLowerCase() === newRule.title.toLowerCase());

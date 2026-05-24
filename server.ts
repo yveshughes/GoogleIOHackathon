@@ -4,6 +4,8 @@ import dotenv from "dotenv";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 
+// Load local environment variables from .env.local if present
+dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 const app = express();
@@ -210,6 +212,7 @@ function checkRateLimit(): boolean {
 }
 
 function handleApiError(error: any) {
+  console.error("ACTUAL GEMINI API ERROR:", error);
   let isQuotaOrLimit = false;
   try {
     const errorStr = JSON.stringify(error).toLowerCase();
@@ -279,6 +282,168 @@ async function fetchCalendarEvents(token: string): Promise<string> {
   }
 }
 
+// Helper function to call real Google Cloud Managed Agents API (to spec)
+async function callManagedAgent(email: any, policy: string, token: string): Promise<any> {
+  const projectId = process.env.GOOGLE_CLOUD_PROJECT || process.env.GCP_PROJECT_ID;
+  if (!projectId) {
+    throw new Error("No Google Cloud Project ID configured. Set GOOGLE_CLOUD_PROJECT in .env.local");
+  }
+
+  // Determine Google Cloud Access Token:
+  // 1. If we have a custom token env var:
+  let gcpToken = process.env.GCP_ACCESS_TOKEN || "";
+  // 2. Or, if the request provided a valid non-mock oauth token:
+  if (!gcpToken && token && token !== "MOCK_SANDBOX_TOKEN") {
+    gcpToken = token;
+  }
+  // 3. Fallback: run local gcloud print-access-token (since the user is authenticated in gcloud CLI!)
+  if (!gcpToken) {
+    try {
+      const { execSync } = await import("child_process");
+      gcpToken = execSync("gcloud auth print-access-token", { encoding: "utf8" }).trim();
+    } catch (e: any) {
+      console.warn("WARNING: Could not fetch active gcloud credentials token:", e.message || e);
+    }
+  }
+
+  if (!gcpToken) {
+    throw new Error("No active Google Cloud access token found. Please run: gcloud auth application-default login");
+  }
+
+  const url = `https://aiplatform.googleapis.com/v1beta1/projects/${projectId}/locations/global/interactions`;
+
+  let calendarEvents = "No calendar token provided. Using default schedule.";
+  if (token && token !== "MOCK_SANDBOX_TOKEN") {
+    calendarEvents = await fetchCalendarEvents(token);
+  } else {
+    calendarEvents = `- Worked out at AgentGym (9:00 AM)
+- Team Huddle (11:00 AM)
+- Working Session (2:00 PM - 5:00 PM)`;
+  }
+
+  const systemInstruction = `You are a high-fidelity Reinforcement Learning Sub-Agent engine for a Gmail inbox called "AgentGym Mail".
+Your task is to analyze an incoming email and propose exactly TWO distinct action strategies for the user to select from by leaning physical head gestures (Left or Right).
+
+One option should be an Active Intervention (Option 1: typically responding, resolving, or escalating), and the other option should be an Alternative/Snooze/Safe Action (Option 2: typically snoozing, categorizing, or filing for later review).
+
+You must respect the user's Core Rules and Policies which they are training you on:
+"${policy || "Be professional, avoid sending generic calendar links to close family, treat server outages as urgent, file marketing SaaS updates as newsletters"}"
+
+You must output a single, valid JSON object matching this exact TypeScript interface:
+{
+  "recommendation": "option1" | "option2",
+  "option1": {
+    "label": string,
+    "actionText": string,
+    "draft"?: string
+  },
+  "option2": {
+    "label": string,
+    "actionText": string,
+    "draft"?: string
+  },
+  "justification": string
+}
+
+Do not include any markdown styling like \`\`\`json or \`\`\`. Output strictly the pure raw JSON string.`;
+
+  const promptText = `EMAIL TO DISPOSITION:
+From: ${email.sender} <${email.senderEmail}>
+Subject: ${email.subject}
+Date: ${email.date}
+Body:
+${email.body}
+
+PREVIOUS FAILED AUTOMATOR ACTION: 
+"${email.previousFailedAction}"
+
+USER'S UPCOMING CALENDAR SCHEDULE (NATIVE TOOL QUERY RESULT):
+${calendarEvents}
+
+Generate Option 1 (LEAN LEFT) and Option 2 (LEAN RIGHT) based on our safety sandbox criteria and active user rules.`;
+
+  const agentName = process.env.MANAGED_AGENT_ID || "antigravity-preview-05-2026";
+
+  const requestBody = {
+    agent: agentName,
+    stream: false,
+    background: false,
+    store: false,
+    environment: {
+      type: "remote",
+      network: {
+        allowlist: [ { domain: "*" } ]
+      }
+    },
+    input: [
+      {
+        type: "user_input",
+        content: [
+          {
+            type: "text",
+            text: `${systemInstruction}\n\nPROMPT:\n${promptText}`
+          }
+        ]
+      }
+    ]
+  };
+
+  console.log(`Calling Vertex AI Managed Agents API (${url}) using agent: ${agentName}...`);
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${gcpToken}`,
+      "Api-Revision": "2026-05-20"
+    },
+    body: JSON.stringify(requestBody)
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Managed Agents API returned status ${response.status}: ${errorText}`);
+  }
+
+  const responseText = await response.text();
+  let agentResponseText = "";
+  
+  try {
+    const json = JSON.parse(responseText);
+    const outputText = json.interaction?.output?.[0]?.content?.[0]?.text || json.output?.[0]?.content?.[0]?.text;
+    if (outputText) {
+      agentResponseText = outputText;
+    }
+  } catch (e) {
+    const lines = responseText.split("\n");
+    for (const line of lines) {
+      if (line.trim().startsWith("data:")) {
+        try {
+          const data = JSON.parse(line.trim().substring(5).trim());
+          const chunkText = data.interaction?.output?.[0]?.content?.[0]?.text || data.chunk?.text || data.text;
+          if (chunkText) {
+            agentResponseText += chunkText;
+          }
+        } catch (err) {}
+      }
+    }
+  }
+
+  if (!agentResponseText) {
+    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        const parsed = JSON.parse(jsonMatch[0]);
+        if (parsed.recommendation) return parsed;
+      } catch (err) {}
+    }
+    throw new Error(`Could not find formatted output JSON text in Managed Agents response: ${responseText}`);
+  }
+
+  const cleanedText = agentResponseText.replace(/```json/g, "").replace(/```/g, "").trim();
+  return JSON.parse(cleanedText);
+}
+
 // REST route to generate smart options based on user custom policies
 app.post("/api/gemini/generate-options", async (req, res) => {
   const { email, policy, token } = req.body;
@@ -292,6 +457,17 @@ app.post("/api/gemini/generate-options", async (req, res) => {
     // Check if API is in rate-limit cooloff
     if (checkRateLimit()) {
       return res.json(runSimulatedGenerateOptions(email));
+    }
+
+    // Call live Managed Agents API to spec if explicitly configured
+    if (process.env.USE_MANAGED_AGENTS === "true") {
+      try {
+        console.log("Attempting to call real Google Cloud Managed Agents API (to spec)...");
+        const dataParsed = await callManagedAgent(email, policy, token);
+        return res.json(dataParsed);
+      } catch (err: any) {
+        console.warn("WARNING: Live Vertex AI Managed Agents integration failed. Falling back to direct Gemini API key processing:", err.message || err);
+      }
     }
 
     // Check if API key is mock or missing
